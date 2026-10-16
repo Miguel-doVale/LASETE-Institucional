@@ -3,9 +3,19 @@ import {
   useContext,
   useState,
   useCallback,
+  useRef,
   useEffect,
   type ReactNode,
 } from 'react';
+
+import { supabase } from './supabase';
+import { useAuth } from './auth';
+import {
+  fetchContent,
+  contentTables,
+  itemRow,
+  settingsRow,
+} from './content-api';
 
 export type ContentType =
   'project' | 'research' | 'activity' | 'media' | 'member' | 'notice';
@@ -383,85 +393,136 @@ export const initialData: SiteData = {
     ),
   ],
 };
-const STORAGE_KEY = 'lasete-preview-content-v1';
-function isContentItem(value: unknown): value is ContentItem {
-  if (!value || typeof value !== 'object') return false;
-  const i = value as Record<string, unknown>;
-  return (
-    ['project', 'research', 'activity', 'media', 'member', 'notice'].includes(
-      String(i.type),
-    ) &&
-    typeof i.id === 'string' &&
-    typeof i.title === 'string' &&
-    typeof i.published === 'boolean' &&
-    ['subtitle', 'description', 'image', 'url', 'category'].every(
-      (k) => typeof i[k] === 'string',
-    )
-  );
-}
-function withCanonicalAiLink(data: SiteData): SiteData {
-  return {
-    ...data,
-    items: data.items.map((item) =>
-      item.id === 'lasete-ai' ? { ...item, url: data.settings.aiUrl } : item,
-    ),
-  };
-}
-function loadData(): SiteData {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const d = JSON.parse(raw);
-      if (
-        d.version === 1 &&
-        Array.isArray(d.items) &&
-        d.items.every(isContentItem) &&
-        d.settings &&
-        typeof d.settings.selectionOpen === 'boolean'
-      )
-        return withCanonicalAiLink({
-          version: 1,
-          items: d.items,
-          settings: { ...initialData.settings, ...d.settings },
-        });
-    }
-  } catch {}
-  return structuredClone(initialData);
-}
 const ContentContext = createContext<{
   data: SiteData;
-  save: (data: SiteData) => boolean;
-  reset: () => boolean;
-}>({ data: initialData, save: () => false, reset: () => false });
+  loading: boolean;
+  loadError: string;
+  reload: () => void;
+  save: (data: SiteData) => Promise<boolean>;
+}>({
+  data: initialData,
+  loading: false,
+  loadError: '',
+  reload: () => {},
+  save: async () => false,
+});
 export function ContentProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<SiteData>(loadData);
+  const { session, isAdmin, loading: authLoading } = useAuth();
+  const [data, setData] = useState<SiteData>(initialData);
+  const [loading, setLoading] = useState(!!supabase);
+  const [loadError, setLoadError] = useState('');
+  const [revision, setRevision] = useState(0);
+  const saving = useRef(false);
+  const identity = `${session?.user.id ?? 'public'}:${isAdmin}:${authLoading}`;
+  const currentIdentity = useRef(identity);
+  currentIdentity.current = identity;
   useEffect(() => {
-    const sync = (event: StorageEvent) => {
-      if (event.key === STORAGE_KEY) setData(loadData());
-    };
-    window.addEventListener('storage', sync);
-    return () => window.removeEventListener('storage', sync);
-  }, []);
-  const save = useCallback((next: SiteData) => {
-    try {
-      const canonical = withCanonicalAiLink(next);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(canonical));
-      setData(canonical);
-      return true;
-    } catch {
-      return false;
+    // Never retain private drafts after a session or permission change.
+    setData(initialData);
+    if (!supabase) {
+      setLoading(false);
+      return;
     }
-  }, []);
-  const reset = useCallback(() => save(structuredClone(initialData)), [save]);
+    if (authLoading) {
+      setLoading(true);
+      return;
+    }
+    const controller = new AbortController();
+    setLoading(true);
+    setLoadError('');
+    void fetchContent(controller.signal)
+      .then((next) => {
+        if (!controller.signal.aborted) setData(next);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setLoadError(
+            'Não foi possível carregar os conteúdos. Confira sua conexão e tente novamente.',
+          );
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [identity, revision, authLoading]);
+  const save = useCallback(
+    async (next: SiteData) => {
+      if (!supabase || !isAdmin || loading || loadError || saving.current)
+        return false;
+      saving.current = true;
+      const startedAs = currentIdentity.current;
+      try {
+        // Write only records changed by this action, never a full table replacement.
+        for (const item of next.items) {
+          const old = data.items.find(
+            (i) => i.type === item.type && i.id === item.id,
+          );
+          if (old && JSON.stringify(old) === JSON.stringify(item)) continue;
+          const order = old ? data.items.indexOf(old) : -1;
+          const { data: written, error } = await supabase
+            .from(contentTables[item.type])
+            .upsert(itemRow(item, order))
+            .select('id')
+            .single();
+          if (error || !written) throw error ?? new Error('Sem permissão.');
+        }
+        for (const item of data.items) {
+          if (next.items.some((i) => i.type === item.type && i.id === item.id))
+            continue;
+          const { data: deleted, error } = await supabase
+            .from(contentTables[item.type])
+            .delete()
+            .eq('id', item.id)
+            .select('id')
+            .single();
+          if (error || !deleted) throw error ?? new Error('Sem permissão.');
+        }
+        if (JSON.stringify(next.settings) !== JSON.stringify(data.settings)) {
+          const { data: written, error } = await supabase
+            .from('site_settings')
+            .update(settingsRow(next.settings))
+            .eq('id', 1)
+            .select('id')
+            .single();
+          if (error || !written) throw error ?? new Error('Sem permissão.');
+        }
+        if (startedAs !== currentIdentity.current) return false;
+        setData({
+          ...next,
+          items: next.items.map((item) =>
+            item.id === 'lasete-ai'
+              ? { ...item, url: next.settings.aiUrl }
+              : item,
+          ),
+        });
+        return true;
+      } catch {
+        // A multi-record action may have partially completed; reload the real state.
+        if (startedAs === currentIdentity.current) setRevision((n) => n + 1);
+        return false;
+      } finally {
+        saving.current = false;
+      }
+    },
+    [data, isAdmin, loading, loadError],
+  );
   return (
-    <ContentContext.Provider value={{ data, save, reset }}>
+    <ContentContext.Provider
+      value={{
+        data: isAdmin
+          ? data
+          : { ...data, items: data.items.filter((i) => i.published) },
+        save,
+        loading,
+        loadError,
+        reload: () => setRevision((n) => n + 1),
+      }}
+    >
       {children}
     </ContentContext.Provider>
   );
 }
-export function useContent() {
-  return useContext(ContentContext);
-}
+export const useContent = () => useContext(ContentContext);
 export function usePublished(type: ContentType) {
   return useContent().data.items.filter((i) => i.type === type && i.published);
 }

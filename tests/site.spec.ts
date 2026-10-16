@@ -1,6 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import sharp from 'sharp';
+import { mockSupabase } from './supabase-fixture';
+test.beforeEach(async ({ page }, testInfo) => {
+  await mockSupabase(page, {
+    signedIn: /painel publica|edição preserva/.test(testInfo.title),
+  });
+});
 const routes = [
   '/',
   '/a-liga',
@@ -211,11 +217,11 @@ test('membros mantêm busca, filtros, cargos e estados sem retrato', async ({
   await page.getByRole('tab', { name: 'Ligantes', exact: true }).click();
   await expect(page.locator('.member-card')).toHaveCount(7);
 });
-test('painel publica projeto e alterna seletivo com persistência local', async ({
+test('painel publica projeto e alterna seletivo com persistência no banco', async ({
   page,
 }) => {
   await page.goto('/admin');
-  await expect(page.getByText('Uma prévia do seu painel.')).toBeVisible();
+  await expect(page.getByText('Espaço da diretoria')).toBeVisible();
   await page
     .getByRole('button', { name: 'Adicionar projeto', exact: true })
     .click();
@@ -501,11 +507,11 @@ test('rotas diretas e atualização abrem o admin; caminhos inválidos mostram o
 }) => {
   await page.goto('/admin');
   await expect(
-    page.getByRole('navigation', { name: 'Seções do painel' }),
+    page.getByRole('button', { name: 'Entrar no painel' }),
   ).toBeVisible();
   await page.reload();
   await expect(
-    page.getByRole('navigation', { name: 'Seções do painel' }),
+    page.getByRole('button', { name: 'Entrar no painel' }),
   ).toBeVisible();
   await expect(
     page.getByRole('heading', { name: 'Página não encontrada.' }),

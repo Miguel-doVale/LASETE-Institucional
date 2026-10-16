@@ -20,7 +20,7 @@ Home organiza apresentação, projetos, atividades reais, estudos, equipe, mídi
 
 Um canvas WebGL na hero, sem superfície sólida visível, e um único campo 2D persistente para a Matrix. O WebGL só redesenha durante interação, rotação e retorno dos caracteres; fica ocioso em repouso. A Matrix opera em frequência reduzida. Ambos pausam fora da tela e com a aba oculta. Partículas e interação calculadas sem atualizar React por quadro; pausa fora da tela e em aba oculta; resolução limitada. Movimento reduzido mantém uma composição estática e rotação por teclado, sem Matrix animada. A saída da hero no scroll usa uma transição curta de posição e opacidade via GSAP. Navegação e foco funcionam sem animação. Scroll nativo em toque e resposta curta no desktop.
 
-Painel mantém CRUD e persistência local, com nova paleta neutra. Dados, fontes e permissões futuras permanecem como descritos em PRODUCT.md. Não inventar pesquisas, cobertura de imprensa ou métricas. O estado do seletivo não altera o Google Forms.
+Painel usa login e persistência no Supabase, com autorização e RLS como descritos em PRODUCT.md. Não inventar pesquisas, cobertura de imprensa ou métricas. O estado do seletivo não altera o Google Forms.
 
 ## Acabamento aprovado após a primeira revisão
 
@@ -35,3 +35,13 @@ Preferências de movimento e breakpoints são acompanhados em tempo real. Altera
 ## Página não encontrada
 
 O estado 404 usa números grandes em ASCII 3D centralizados, com dispersão localizada no mouse e orientação fixa, sem rotação por arraste, teclado ou toque. Reaproveita o motor da hero; demanda de renderização, limite de resolução, pausa fora da tela e alternativa estática preservam a navegação. Mensagem, Home e contato aparecem abaixo; três páginas públicas distintas são sorteadas a cada visita e permanecem estáveis durante a interação.
+
+## Painel editorial e login
+
+Modo Operate. Preservar o preto e branco da LASETE: base #0c0c0c, navegação #000000, superfícies #141414, bordas #292929 e texto secundário #a3a3a3. Geist, espaçamento em múltiplos de 4, controles de 44–50px. Componentes existentes de Button e Dialog, ícones Lucide; nenhuma nova biblioteca visual. Referência estrutural: painel editorial com navegação lateral e listas tabulares; entrada em duas colunas, marca à esquerda e formulário à direita. No celular, marca compacta e navegação horizontal. Sem Matrix no admin.
+
+Login tem e-mail, senha com exibição opcional, feedback de erro e estados de verificação e conta sem autorização. Painel tem filtros Todos/Publicados/Rascunhos, busca, miniaturas e ações de editar, publicar e excluir. Retirar restauração local. Movimento restrito a feedback curto de controles e indicador de carregamento; respeitar movimento reduzido.
+
+### Login — composição de hardware aprovada pelo responsável
+
+Referência fornecida: dois dispositivos à esquerda e login em moldura discreta à direita. Substituir os celulares por uma composição monocromática de Flipper Zero branco e HackRF One preto personalizados com o emblema LASETE. Arte de produto ilustrativa criada para esta página; não representa inventário físico da liga. Asset local `public/images/admin-hardware.webp`. Header compacto com marca e retorno ao site; nenhum rodapé, cadastro, login social ou anúncio de aplicativo. Formulário centralizado, com senha visível opcional e os estados reais de autorização preservados. A tela inteira cabe no viewport em desktop e celular: a imagem é reduzida no celular e retirada em alturas muito pequenas para priorizar o acesso. Sem bloquear scroll globalmente: zoom e teclado virtual devem manter todos os controles alcançáveis.

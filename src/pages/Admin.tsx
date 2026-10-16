@@ -14,11 +14,17 @@ import {
   CalendarDays,
   Megaphone,
   Settings2,
-  FlaskConical,
+  LogOut,
+  ArrowUpRight,
+  LoaderCircle,
+  ShieldCheck,
   Eye,
   EyeOff,
   ImagePlus,
 } from 'lucide-react';
+import AdminAccess from './AdminAccess';
+import { useAuth } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { Brand } from '@/components/Brand';
 import { Button } from '@/components/ui/button';
 import {
@@ -82,23 +88,38 @@ function Field({
   );
 }
 export default function Admin() {
-  const { data, save, reset } = useContent();
+  useEffect(() => {
+    document.title = 'Painel editorial · LASETE';
+  }, []);
+  return (
+    <AdminAccess>
+      <AdminPanel />
+    </AdminAccess>
+  );
+}
+function AdminPanel() {
+  const { data, save, loading, loadError, reload } = useContent();
+  const { session } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
   const [module, setModule] = useState<Module>('project');
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState<ContentItem | null>(null);
   const [deleting, setDeleting] = useState<ContentItem | null>(null);
-  const [resetOpen, setResetOpen] = useState(false);
   const [settings, setSettings] = useState<Settings>(data.settings);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   useEffect(() => {
-    document.title = 'Painel de demonstração · LASETE';
+    document.title = 'Painel editorial · LASETE';
   }, []);
   useEffect(() => setSettings(data.settings), [data.settings]);
   const current = modules.find((m) => m.type === module);
   const list = data.items.filter(
     (i) =>
       i.type === module &&
+      (statusFilter === 'all' ||
+        (statusFilter === 'published' ? i.published : !i.published)) &&
       `${i.title} ${i.subtitle} ${i.category}`
         .toLocaleLowerCase()
         .includes(query.toLocaleLowerCase()),
@@ -106,21 +127,26 @@ export default function Admin() {
   const navigate = (m: Module) => {
     setModule(m);
     setQuery('');
+    setStatusFilter('all');
     setError('');
     setNotice('');
   };
-  const persist = (next: typeof data) => {
-    if (!save(next)) {
+  const persist = async (next: typeof data) => {
+    if (busy) return false;
+    setBusy(true);
+    const saved = await save(next);
+    setBusy(false);
+    if (!saved) {
       setError(
-        'Não foi possível salvar no navegador. Tente uma imagem menor ou libere espaço de armazenamento.',
+        'Não foi possível salvar. Confira sua conexão e sua permissão de administrador e tente novamente.',
       );
       return false;
     }
-    setNotice('Alterações salvas neste navegador.');
+    setNotice('Alterações salvas no site.');
     setError('');
     return true;
   };
-  const updateItem = (event: FormEvent) => {
+  const updateItem = async (event: FormEvent) => {
     event.preventDefault();
     if (!editing) return;
     const item = {
@@ -152,7 +178,8 @@ export default function Admin() {
       item.id === 'lasete-ai'
         ? { ...data.settings, aiUrl: item.url }
         : data.settings;
-    if (persist({ ...data, items, settings: nextSettings })) setEditing(null);
+    if (await persist({ ...data, items, settings: nextSettings }))
+      setEditing(null);
   };
   const create = () => {
     if (!current) return;
@@ -170,29 +197,46 @@ export default function Admin() {
       ...(current.type === 'member' ? { group: 'Ligantes' } : {}),
     });
   };
-  const upload = (event: ChangeEvent<HTMLInputElement>) => {
+  const upload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !supabase || !editing) return;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
       setError('Escolha uma imagem JPG, PNG ou WebP.');
-      event.target.value = '';
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      setError('A imagem precisa ter até 2 MB. Escolha um arquivo menor.');
-      event.target.value = '';
+    if (file.size > 5 * 1024 * 1024) {
+      setError('A imagem precisa ter até 5 MB. Escolha um arquivo menor.');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
+    const itemId = editing.id;
+    setUploading(true);
+    setError('');
+    try {
+      const extension = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp',
+      }[file.type];
+      const path = `${editing.type}/${itemId}/${crypto.randomUUID()}.${extension}`;
+      const { error: failure } = await supabase.storage
+        .from('lasete-images')
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (failure) throw failure;
+      const { data: image } = supabase.storage
+        .from('lasete-images')
+        .getPublicUrl(path);
       setEditing((old) =>
-        old ? { ...old, image: String(reader.result), postCrop: false } : old,
+        old?.id === itemId
+          ? { ...old, image: image.publicUrl, postCrop: false }
+          : old,
       );
-      setError('');
-    };
-    reader.onerror = () =>
-      setError('Não foi possível ler essa imagem. Tente novamente.');
-    reader.readAsDataURL(file);
+    } catch {
+      setError(
+        'Não foi possível enviar a imagem. Confira sua conexão e tente novamente.',
+      );
+    } finally {
+      setUploading(false);
+    }
   };
   const saveSettings = (event: FormEvent) => {
     event.preventDefault();
@@ -206,17 +250,31 @@ export default function Admin() {
     }
     persist({ ...data, settings });
   };
+  const moduleItems = data.items.filter((i) => i.type === module);
+  const publishedCount = moduleItems.filter((i) => i.published).length;
+  const logout = async () => {
+    setBusy(true);
+    try {
+      const { error: failure } = await supabase!.auth.signOut();
+      if (failure) throw failure;
+    } catch {
+      setError('Não foi possível sair. Tente novamente.');
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
         <Link to="/" aria-label="Voltar à Home">
           <Brand />
         </Link>
-        <span className="admin-sidebar-label">Painel editorial</span>
+        <span className="admin-sidebar-label">Gerenciar conteúdo</span>
         <nav aria-label="Seções do painel">
           {modules.map((m) => (
             <button
               key={m.type}
+              aria-current={module === m.type ? 'page' : undefined}
               className={module === m.type ? 'active' : ''}
               onClick={() => navigate(m.type)}
             >
@@ -245,32 +303,33 @@ export default function Admin() {
           <Link to="/" className="text-link">
             Visualizar site
           </Link>
-          <button className="reset-button" onClick={() => setResetOpen(true)}>
-            Restaurar dados iniciais
+          <div className="admin-account">
+            <span className="admin-avatar">
+              {session?.user.email?.[0]?.toUpperCase() || 'L'}
+            </span>
+            <div>
+              <strong>Administrador</strong>
+              <small>{session?.user.email}</small>
+            </div>
+          </div>
+          <button className="admin-signout" onClick={logout} disabled={busy}>
+            <LogOut size={16} /> Sair da conta
           </button>
         </div>
       </aside>
       <main className="admin-main">
         <div className="admin-topbar">
           <span className="meta">LASETE / Conteúdo</span>
-          <span className="demo-tag">
-            <FlaskConical size={13} />
-            Demonstração
-          </span>
+          <Link to="/" className="admin-site-link">
+            Visualizar site <ArrowUpRight size={15} />
+          </Link>
         </div>
-        <aside className="demo-notice">
-          <FlaskConical size={20} />
-          <div>
-            <strong>Uma prévia do seu painel.</strong>
-            <p>
-              As alterações ficam apenas neste navegador. Login, permissões e
-              armazenamento compartilhado entram na integração com Supabase.
-            </p>
-          </div>
-        </aside>
+        <div className="admin-workspace-label">
+          <ShieldCheck size={16} /> Espaço da diretoria
+        </div>
         <div className="admin-page-heading">
           <div>
-            <span className="section-label">Tudo no seu lugar.</span>
+            <span className="section-label">Painel editorial</span>
             <h1>
               {current?.label ||
                 (module === 'selection'
@@ -279,7 +338,7 @@ export default function Admin() {
             </h1>
           </div>
           {current && (
-            <Button onClick={create}>
+            <Button onClick={create} disabled={busy || loading || !!loadError}>
               <Plus size={17} />
               Adicionar {current.singular}
             </Button>
@@ -296,12 +355,47 @@ export default function Admin() {
             </>
           )}
         </div>
-        {current ? (
+        {loadError ? (
+          <div className="access-message" role="alert">
+            <strong>Os conteúdos não carregaram</strong>
+            <p>{loadError}</p>
+            <Button onClick={reload}>Tentar novamente</Button>
+          </div>
+        ) : loading ? (
+          <div className="access-loading" role="status">
+            <LoaderCircle className="admin-spinner" size={20} /> Carregando
+            conteúdos…
+          </div>
+        ) : current ? (
           <>
+            <p className="admin-module-description">
+              {module === 'member'
+                ? 'As pessoas que fazem a liga acontecer.'
+                : `Organize ${current.label.toLocaleLowerCase()} e escolha o que aparece no site.`}
+            </p>
             <div className="admin-list-toolbar">
-              <p>
-                {list.length} {list.length === 1 ? 'registro' : 'registros'}
-              </p>
+              <div
+                className="admin-status-filter"
+                role="group"
+                aria-label="Filtrar por publicação"
+              >
+                {[
+                  ['all', 'Todos', moduleItems.length],
+                  ['published', 'Publicados', publishedCount],
+                  ['draft', 'Rascunhos', moduleItems.length - publishedCount],
+                ].map(([value, label, count]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={statusFilter === value}
+                    onClick={() => setStatusFilter(String(value))}
+                  >
+                    {label}
+                    <span>{count}</span>
+                  </button>
+                ))}
+              </div>
+
               <label className="search-field">
                 <Search size={16} />
                 <span className="sr-only">Buscar conteúdo</span>
@@ -352,6 +446,7 @@ export default function Admin() {
                       <td>
                         <div className="admin-row-actions">
                           <button
+                            disabled={busy}
                             aria-label={`Editar ${item.title}`}
                             onClick={() => {
                               setEditing({ ...item });
@@ -361,6 +456,7 @@ export default function Admin() {
                             <Pencil size={17} />
                           </button>
                           <button
+                            disabled={busy}
                             aria-label={`${item.published ? 'Despublicar' : 'Publicar'} ${item.title}`}
                             onClick={() =>
                               persist({
@@ -381,6 +477,7 @@ export default function Admin() {
                           </button>
                           <button
                             className="delete-button"
+                            disabled={busy}
                             aria-label={`Excluir ${item.title}`}
                             onClick={() => setDeleting(item)}
                           >
@@ -403,7 +500,7 @@ export default function Admin() {
                   <p>
                     {query
                       ? 'Tente buscar por outro título ou categoria.'
-                      : `Adicione ${current.singular} para testar a publicação no site.`}
+                      : `Adicione ${current.singular} para publicar no site.`}
                   </p>
                   {!query && (
                     <Button variant="outline" onClick={create}>
@@ -417,143 +514,145 @@ export default function Admin() {
           </>
         ) : (
           <form className="admin-settings-form" onSubmit={saveSettings}>
-            {module === 'selection' ? (
-              <>
-                <div className="selection-setting">
-                  <div>
-                    <h2>Inscrições abertas</h2>
-                    <p>
-                      Controla o aviso grande e o botão de inscrição na página
-                      Participar.
-                    </p>
+            <fieldset disabled={busy} className="admin-settings-fields">
+              {module === 'selection' ? (
+                <>
+                  <div className="selection-setting">
+                    <div>
+                      <h2>Inscrições abertas</h2>
+                      <p>
+                        Controla o aviso grande e o botão de inscrição na página
+                        Participar.
+                      </p>
+                    </div>
+                    <label className="toggle-switch">
+                      <input
+                        aria-label="Seletivo aberto"
+                        type="checkbox"
+                        checked={settings.selectionOpen}
+                        onChange={(e) =>
+                          setSettings({
+                            ...settings,
+                            selectionOpen: e.target.checked,
+                          })
+                        }
+                      />
+                      <span />
+                    </label>
                   </div>
-                  <label className="toggle-switch">
+                  <div
+                    className={`admin-selection-preview ${settings.selectionOpen ? 'open' : ''}`}
+                  >
+                    <span className="meta">Prévia da mensagem</span>
+                    <strong>
+                      {settings.selectionOpen
+                        ? 'INSCRIÇÕES ABERTAS.'
+                        : 'SELETIVO FECHADO.'}
+                    </strong>
+                  </div>
+                  <p className="field-help">
+                    Esse controle muda o aviso no site. A abertura ou o
+                    fechamento do Google Forms é feito no próprio formulário.
+                  </p>
+                  <Field label="Link do edital">
                     <input
-                      aria-label="Seletivo aberto"
-                      type="checkbox"
-                      checked={settings.selectionOpen}
+                      type="url"
+                      required
+                      value={settings.editalUrl}
+                      onChange={(e) =>
+                        setSettings({ ...settings, editalUrl: e.target.value })
+                      }
+                    />
+                  </Field>
+                  <Field
+                    label="Link do formulário de inscrição"
+                    hint="O link continua disponível para consulta quando o seletivo está fechado."
+                  >
+                    <input
+                      type="url"
+                      required
+                      value={settings.formUrl}
+                      onChange={(e) =>
+                        setSettings({ ...settings, formUrl: e.target.value })
+                      }
+                    />
+                  </Field>
+                  <Field label="Orientações complementares">
+                    <textarea
+                      rows={3}
+                      maxLength={600}
+                      value={settings.selectionNote}
                       onChange={(e) =>
                         setSettings({
                           ...settings,
-                          selectionOpen: e.target.checked,
+                          selectionNote: e.target.value,
                         })
                       }
                     />
-                    <span />
-                  </label>
-                </div>
-                <div
-                  className={`admin-selection-preview ${settings.selectionOpen ? 'open' : ''}`}
-                >
-                  <span className="meta">Prévia da mensagem</span>
-                  <strong>
-                    {settings.selectionOpen
-                      ? 'INSCRIÇÕES ABERTAS.'
-                      : 'SELETIVO FECHADO.'}
-                  </strong>
-                </div>
-                <p className="field-help">
-                  Esse controle muda o aviso no site. A abertura ou o fechamento
-                  do Google Forms é feito no próprio formulário.
+                  </Field>
+                </>
+              ) : (
+                <>
+                  <Field label="E-mail de contato">
+                    <input
+                      type="email"
+                      required
+                      value={settings.email}
+                      onChange={(e) =>
+                        setSettings({ ...settings, email: e.target.value })
+                      }
+                    />
+                  </Field>
+                  <Field label="Instagram">
+                    <input
+                      type="url"
+                      required
+                      value={settings.instagram}
+                      onChange={(e) =>
+                        setSettings({ ...settings, instagram: e.target.value })
+                      }
+                    />
+                  </Field>
+                  <Field label="LinkedIn">
+                    <input
+                      type="url"
+                      required
+                      value={settings.linkedin}
+                      onChange={(e) =>
+                        setSettings({ ...settings, linkedin: e.target.value })
+                      }
+                    />
+                  </Field>
+                  <Field label="LASETE AI">
+                    <input
+                      type="url"
+                      required
+                      value={settings.aiUrl}
+                      onChange={(e) =>
+                        setSettings({ ...settings, aiUrl: e.target.value })
+                      }
+                    />
+                  </Field>
+                </>
+              )}
+              {error && (
+                <p className="form-error" role="alert">
+                  {error}
                 </p>
-                <Field label="Link do edital">
-                  <input
-                    type="url"
-                    required
-                    value={settings.editalUrl}
-                    onChange={(e) =>
-                      setSettings({ ...settings, editalUrl: e.target.value })
-                    }
-                  />
-                </Field>
-                <Field
-                  label="Link do formulário de inscrição"
-                  hint="O link continua disponível para consulta quando o seletivo está fechado."
+              )}
+              <div className="admin-form-actions">
+                <Button type="submit" disabled={busy}>
+                  <Check size={17} />
+                  Salvar alterações
+                </Button>
+                <Link
+                  className="text-link"
+                  to={module === 'selection' ? '/participar' : '/'}
                 >
-                  <input
-                    type="url"
-                    required
-                    value={settings.formUrl}
-                    onChange={(e) =>
-                      setSettings({ ...settings, formUrl: e.target.value })
-                    }
-                  />
-                </Field>
-                <Field label="Orientações complementares">
-                  <textarea
-                    rows={3}
-                    maxLength={600}
-                    value={settings.selectionNote}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        selectionNote: e.target.value,
-                      })
-                    }
-                  />
-                </Field>
-              </>
-            ) : (
-              <>
-                <Field label="E-mail de contato">
-                  <input
-                    type="email"
-                    required
-                    value={settings.email}
-                    onChange={(e) =>
-                      setSettings({ ...settings, email: e.target.value })
-                    }
-                  />
-                </Field>
-                <Field label="Instagram">
-                  <input
-                    type="url"
-                    required
-                    value={settings.instagram}
-                    onChange={(e) =>
-                      setSettings({ ...settings, instagram: e.target.value })
-                    }
-                  />
-                </Field>
-                <Field label="LinkedIn">
-                  <input
-                    type="url"
-                    required
-                    value={settings.linkedin}
-                    onChange={(e) =>
-                      setSettings({ ...settings, linkedin: e.target.value })
-                    }
-                  />
-                </Field>
-                <Field label="LASETE AI">
-                  <input
-                    type="url"
-                    required
-                    value={settings.aiUrl}
-                    onChange={(e) =>
-                      setSettings({ ...settings, aiUrl: e.target.value })
-                    }
-                  />
-                </Field>
-              </>
-            )}
-            {error && (
-              <p className="form-error" role="alert">
-                {error}
-              </p>
-            )}
-            <div className="admin-form-actions">
-              <Button type="submit">
-                <Check size={17} />
-                Salvar alterações
-              </Button>
-              <Link
-                className="text-link"
-                to={module === 'selection' ? '/participar' : '/'}
-              >
-                Ver no site
-              </Link>
-            </div>
+                  Ver no site
+                </Link>
+              </div>
+            </fieldset>
           </form>
         )}
         {error && current && !editing && (
@@ -565,7 +664,7 @@ export default function Admin() {
       <Dialog
         open={!!editing}
         onOpenChange={(open) => {
-          if (!open) {
+          if (!open && !busy && !uploading) {
             setEditing(null);
             setError('');
           }
@@ -581,140 +680,158 @@ export default function Admin() {
             Preencha as informações e confira o status de publicação.
           </DialogDescription>
           {editing && (
-            <form onSubmit={updateItem} className="editor-form">
-              <Field
-                label={editing.type === 'member' ? 'Nome completo' : 'Título'}
+            <form
+              onSubmit={updateItem}
+              className="editor-form"
+              aria-busy={busy || uploading}
+            >
+              <fieldset
+                disabled={busy || uploading}
+                className="admin-editor-fields"
               >
-                <input
-                  autoFocus
-                  required
-                  maxLength={160}
-                  value={editing.title}
-                  onChange={(e) =>
-                    setEditing({ ...editing, title: e.target.value })
-                  }
-                />
-              </Field>
-              <Field label={editing.type === 'member' ? 'Cargo' : 'Subtítulo'}>
-                <input
-                  maxLength={240}
-                  value={editing.subtitle}
-                  onChange={(e) =>
-                    setEditing({ ...editing, subtitle: e.target.value })
-                  }
-                />
-              </Field>
-              {editing.type === 'member' && (
-                <Field label="Grupo">
-                  <select
-                    value={editing.group || 'Ligantes'}
-                    onChange={(e) =>
-                      setEditing({ ...editing, group: e.target.value })
-                    }
-                  >
-                    <option>Diretoria</option>
-                    <option>Ligantes</option>
-                    <option>Orientadores</option>
-                  </select>
-                </Field>
-              )}
-              <Field
-                label={
-                  editing.type === 'member'
-                    ? 'Área'
-                    : editing.type === 'media'
-                      ? 'Veículo de comunicação'
-                      : 'Categoria'
-                }
-              >
-                <input
-                  maxLength={100}
-                  value={editing.category}
-                  onChange={(e) =>
-                    setEditing({ ...editing, category: e.target.value })
-                  }
-                />
-              </Field>
-              {editing.type !== 'member' && (
-                <>
-                  <Field label="Descrição">
-                    <textarea
-                      rows={4}
-                      maxLength={4000}
-                      value={editing.description}
-                      onChange={(e) =>
-                        setEditing({ ...editing, description: e.target.value })
-                      }
-                    />
-                  </Field>
-                  <Field
-                    label="Link de direcionamento"
-                    hint="Endereço HTTPS ou caminho de uma página do site."
-                  >
-                    <input
-                      required={
-                        editing.type === 'media' || editing.type === 'notice'
-                      }
-                      value={editing.url}
-                      onChange={(e) =>
-                        setEditing({ ...editing, url: e.target.value })
-                      }
-                      placeholder="https://"
-                    />
-                  </Field>
-                </>
-              )}
-              <div className="image-upload-field">
-                <span>Imagem</span>
-                {editing.image && (
-                  <img
-                    className="upload-preview"
-                    src={safeImage(editing.image)}
-                    alt="Prévia da imagem selecionada"
-                  />
-                )}
-                <label className="upload-control">
-                  <ImagePlus size={18} />
-                  <span>
-                    {editing.image ? 'Trocar imagem' : 'Escolher imagem'}
-                  </span>
-                  <input
-                    type="file"
-                    aria-label="Escolher imagem"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={upload}
-                  />
-                </label>
-                <small>JPG, PNG ou WebP · até 2 MB nesta demonstração.</small>
-              </div>
-              <label className="publish-checkbox">
-                <input
-                  type="checkbox"
-                  checked={editing.published}
-                  onChange={(e) =>
-                    setEditing({ ...editing, published: e.target.checked })
-                  }
-                />
-                <span>Publicado no site</span>
-              </label>
-              {error && (
-                <p className="form-error" role="alert">
-                  {error}
-                </p>
-              )}
-              <div className="admin-form-actions">
-                <Button type="submit">
-                  <Check size={16} />
-                  Salvar conteúdo
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setEditing(null)}
+                <Field
+                  label={editing.type === 'member' ? 'Nome completo' : 'Título'}
                 >
-                  Cancelar
-                </Button>
-              </div>
+                  <input
+                    autoFocus
+                    required
+                    maxLength={160}
+                    value={editing.title}
+                    onChange={(e) =>
+                      setEditing({ ...editing, title: e.target.value })
+                    }
+                  />
+                </Field>
+                <Field
+                  label={editing.type === 'member' ? 'Cargo' : 'Subtítulo'}
+                >
+                  <input
+                    maxLength={240}
+                    value={editing.subtitle}
+                    onChange={(e) =>
+                      setEditing({ ...editing, subtitle: e.target.value })
+                    }
+                  />
+                </Field>
+                {editing.type === 'member' && (
+                  <Field label="Grupo">
+                    <select
+                      value={editing.group || 'Ligantes'}
+                      onChange={(e) =>
+                        setEditing({ ...editing, group: e.target.value })
+                      }
+                    >
+                      <option>Diretoria</option>
+                      <option>Ligantes</option>
+                      <option>Orientadores</option>
+                    </select>
+                  </Field>
+                )}
+                <Field
+                  label={
+                    editing.type === 'member'
+                      ? 'Área'
+                      : editing.type === 'media'
+                        ? 'Veículo de comunicação'
+                        : 'Categoria'
+                  }
+                >
+                  <input
+                    maxLength={100}
+                    value={editing.category}
+                    onChange={(e) =>
+                      setEditing({ ...editing, category: e.target.value })
+                    }
+                  />
+                </Field>
+                {editing.type !== 'member' && (
+                  <>
+                    <Field label="Descrição">
+                      <textarea
+                        rows={4}
+                        maxLength={4000}
+                        value={editing.description}
+                        onChange={(e) =>
+                          setEditing({
+                            ...editing,
+                            description: e.target.value,
+                          })
+                        }
+                      />
+                    </Field>
+                    <Field
+                      label="Link de direcionamento"
+                      hint="Endereço HTTPS ou caminho de uma página do site."
+                    >
+                      <input
+                        required={
+                          editing.type === 'media' || editing.type === 'notice'
+                        }
+                        value={editing.url}
+                        onChange={(e) =>
+                          setEditing({ ...editing, url: e.target.value })
+                        }
+                        placeholder="https://"
+                      />
+                    </Field>
+                  </>
+                )}
+                <div className="image-upload-field">
+                  <span>Imagem</span>
+                  {editing.image && (
+                    <img
+                      className="upload-preview"
+                      src={safeImage(editing.image)}
+                      alt="Prévia da imagem selecionada"
+                    />
+                  )}
+                  <label className="upload-control">
+                    <ImagePlus size={18} />
+                    <span>
+                      {editing.image ? 'Trocar imagem' : 'Escolher imagem'}
+                    </span>
+                    <input
+                      type="file"
+                      aria-label="Escolher imagem"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={upload}
+                    />
+                  </label>
+                  <small>
+                    {uploading
+                      ? 'Enviando imagem…'
+                      : 'JPG, PNG ou WebP · até 5 MB.'}
+                  </small>
+                </div>
+                <label className="publish-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={editing.published}
+                    onChange={(e) =>
+                      setEditing({ ...editing, published: e.target.checked })
+                    }
+                  />
+                  <span>Publicado no site</span>
+                </label>
+                {error && (
+                  <p className="form-error" role="alert">
+                    {error}
+                  </p>
+                )}
+                <div className="admin-form-actions">
+                  <Button type="submit" disabled={busy || uploading}>
+                    <Check size={16} />
+                    {busy ? 'Salvando…' : 'Salvar conteúdo'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setEditing(null)}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </fieldset>
             </form>
           )}
         </DialogContent>
@@ -722,23 +839,25 @@ export default function Admin() {
       <Dialog
         open={!!deleting}
         onOpenChange={(open) => {
-          if (!open) setDeleting(null);
+          if (!open && !busy) setDeleting(null);
         }}
       >
         <DialogContent>
           <DialogTitle>Excluir este conteúdo?</DialogTitle>
           <DialogDescription>
-            {deleting?.title} será removido desta demonstração.
+            {deleting?.title} será removido do site. Essa ação não pode ser
+            desfeita.
           </DialogDescription>
           <div className="admin-form-actions">
             <Button
-              onClick={() => {
+              disabled={busy}
+              onClick={async () => {
                 if (
                   deleting &&
-                  persist({
+                  (await persist({
                     ...data,
                     items: data.items.filter((i) => i.id !== deleting.id),
-                  })
+                  }))
                 )
                   setDeleting(null);
               }}
@@ -746,30 +865,6 @@ export default function Admin() {
               Excluir conteúdo
             </Button>
             <Button variant="outline" onClick={() => setDeleting(null)}>
-              Cancelar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={resetOpen} onOpenChange={setResetOpen}>
-        <DialogContent>
-          <DialogTitle>Voltar ao ponto de partida?</DialogTitle>
-          <DialogDescription>
-            As edições locais serão substituídas pelos conteúdos iniciais da
-            prévia.
-          </DialogDescription>
-          <div className="admin-form-actions">
-            <Button
-              onClick={() => {
-                if (reset()) {
-                  setResetOpen(false);
-                  setNotice('Dados iniciais restaurados.');
-                } else setError('Não foi possível restaurar os dados.');
-              }}
-            >
-              Restaurar dados
-            </Button>
-            <Button variant="outline" onClick={() => setResetOpen(false)}>
               Cancelar
             </Button>
           </div>

@@ -3413,3 +3413,851 @@ p {
   opacity: 1;
   mask-image: none;
 }
+
+/* Editorial workspace: LASETE's neutral palette, comfortable working density. */
+.admin-access,
+.admin-shell {
+  --admin-surface: #0c0c0c;
+  --admin-raised: #141414;
+  --admin-line: #292929;
+  --admin-secondary: #a3a3a3;
+}
+.admin-access {
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #0c0c0c;
+}
+.access-identity {
+  position: relative;
+  background: #000;
+  min-height: 100svh;
+  padding: clamp(28px, 4vw, 64px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid var(--admin-line);
+  overflow: hidden;
+}
+.access-identity > a {
+  align-self: flex-start;
+  z-index: 1;
+}
+.access-emblem {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  padding: 64px 0;
+}
+.access-emblem svg {
+  width: min(52%, 260px);
+  color: #eee;
+  transform: rotate(-8deg);
+}
+.access-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 20px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #a3a3a3;
+}
+.access-caption > span:last-child {
+  color: #f5f5f5;
+  font-weight: 600;
+}
+.access-panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(28px, 4vw, 64px);
+}
+.access-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #a3a3a3;
+  font-size: 13px;
+  min-height: 44px;
+  align-self: flex-start;
+}
+.access-back:hover {
+  color: #f5f5f5;
+}
+.access-form-wrap {
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+  padding: 64px 0;
+}
+.access-kicker {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #a3a3a3;
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+.access-form-wrap h1 {
+  font-size: clamp(30px, 3.2vw, 44px);
+  line-height: 1.13;
+  letter-spacing: -0.035em;
+  font-weight: 550;
+  max-width: 12ch;
+  text-wrap: balance;
+}
+.access-intro {
+  font-size: 15px;
+  color: #a3a3a3;
+  line-height: 1.7;
+  margin: 20px 0 36px;
+}
+.access-form {
+  display: grid;
+  gap: 24px;
+}
+.access-form .admin-field {
+  gap: 10px;
+  margin: 0;
+}
+.access-form .admin-field > span:first-child {
+  font-size: 13px;
+}
+.access-form .admin-field input {
+  background: #141414;
+  min-height: 50px;
+  font-size: 16px;
+  border-radius: 6px;
+}
+.access-password {
+  position: relative;
+  display: block;
+}
+.access-password input {
+  width: 100%;
+  padding-right: 52px;
+}
+.access-password button {
+  position: absolute;
+  inset: 3px 3px 3px auto;
+  width: 44px;
+  display: grid;
+  place-items: center;
+  color: #a3a3a3;
+}
+.access-form > .button {
+  width: 100%;
+  justify-content: space-between;
+  border-radius: 6px;
+  min-height: 50px;
+}
+.access-help {
+  font-size: 12px;
+  color: #a3a3a3;
+  line-height: 1.75;
+}
+.access-footer {
+  color: #a3a3a3;
+  font-size: 12px;
+  text-align: center;
+  padding-top: 24px;
+}
+.access-message {
+  padding: 24px;
+  border: 1px solid #292929;
+  border-radius: 8px;
+  display: grid;
+  gap: 16px;
+}
+.access-message strong {
+  font-weight: 550;
+  font-size: 16px;
+}
+.access-message p {
+  color: #a3a3a3;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.access-account {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.access-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-block: 36px;
+  color: #a3a3a3;
+  font-size: 14px;
+}
+.admin-spinner {
+  animation: admin-spin 1s linear infinite;
+}
+@keyframes admin-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.admin-shell {
+  background: var(--admin-surface);
+}
+.admin-sidebar {
+  background: #000;
+  width: 264px;
+  padding: 32px 20px 24px;
+}
+.admin-sidebar > .admin-sidebar-label {
+  font-size: 12px;
+  margin: 48px 12px 16px;
+}
+.admin-sidebar > nav > button {
+  font-size: 14px;
+  border-radius: 6px;
+  min-height: 48px;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+.admin-sidebar > nav > button:hover {
+  background: #141414;
+  color: #fff;
+}
+.admin-sidebar > nav > button.active {
+  background: #202020;
+  color: #fff;
+}
+.admin-sidebar > nav > button > span {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.admin-sidebar-bottom {
+  gap: 16px;
+}
+.admin-sidebar-bottom > .text-link {
+  font-size: 13px;
+  padding: 12px;
+}
+.admin-account {
+  border-top: 1px solid #292929;
+  padding: 20px 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.admin-avatar {
+  width: 36px;
+  height: 36px;
+  background: #242424;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+.admin-account > div {
+  min-width: 0;
+}
+.admin-account strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+}
+.admin-account small {
+  display: block;
+  font-size: 11px;
+  color: #a3a3a3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+.admin-signout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  font-size: 13px;
+  color: #a3a3a3;
+  min-height: 44px;
+}
+.admin-signout:hover {
+  color: #fff;
+}
+.admin-main {
+  margin-left: 264px;
+  padding: 0 clamp(24px, 4vw, 64px) 64px;
+  max-width: 1680px;
+}
+.admin-topbar {
+  height: 80px;
+  margin-bottom: 40px;
+}
+.admin-topbar > .meta {
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.admin-site-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #a3a3a3;
+  font-size: 13px;
+  min-height: 44px;
+}
+.admin-workspace-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #a3a3a3;
+}
+.admin-page-heading {
+  margin-top: 24px;
+}
+.admin-page-heading .section-label {
+  display: none;
+}
+.admin-page-heading h1 {
+  font-size: clamp(30px, 3vw, 42px);
+  font-weight: 550;
+  letter-spacing: -0.035em;
+}
+.admin-page-heading > .button {
+  border-radius: 6px;
+}
+.admin-module-description {
+  font-size: 14px;
+  color: #a3a3a3;
+  margin-top: -8px;
+  margin-bottom: 32px;
+  line-height: 1.7;
+}
+.admin-feedback {
+  font-size: 13px;
+  min-height: 40px;
+}
+.admin-list-toolbar {
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.admin-status-filter {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.admin-status-filter > button {
+  min-height: 44px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #a3a3a3;
+  border-radius: 6px;
+}
+.admin-status-filter > button[aria-pressed='true'] {
+  color: #f5f5f5;
+  background: #202020;
+}
+.admin-status-filter > button > span {
+  font-size: 11px;
+  color: #a3a3a3;
+  font-variant-numeric: tabular-nums;
+}
+.admin-table-wrap {
+  border-color: #292929;
+  border-radius: 8px;
+}
+.admin-table th {
+  background: #141414;
+  font-size: 12px;
+  padding: 16px 24px;
+}
+.admin-table td {
+  padding: 22px 24px;
+}
+.admin-table tbody tr:hover {
+  background: #101010;
+}
+.admin-item-title strong {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.admin-item-title small {
+  font-size: 12px;
+  color: #a3a3a3;
+  line-height: 1.65;
+  margin-top: 4px;
+}
+.admin-thumbnail {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+  background: #202020;
+}
+.publication-status {
+  font-size: 12px;
+}
+.admin-row-actions button {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 6px;
+}
+.admin-settings-fields,
+.admin-editor-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: contents;
+}
+.admin-field > span,
+.image-upload-field > span {
+  font-size: 13px;
+}
+.admin-field input,
+.admin-field textarea,
+.admin-field select {
+  font-size: 16px;
+  border-radius: 6px;
+}
+.admin-shell button:disabled,
+.admin-access button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.admin-settings-form {
+  background: #101010;
+  border: 1px solid #292929;
+  border-radius: 8px;
+  padding: clamp(20px, 3vw, 36px);
+  margin-top: 8px;
+}
+@media (max-width: 1000px) {
+  .admin-sidebar {
+    width: 228px;
+    padding-inline: 16px;
+  }
+  .admin-main {
+    margin-left: 228px;
+  }
+}
+@media (max-width: 760px) {
+  .admin-access {
+    display: block;
+  }
+  .access-identity {
+    min-height: auto;
+    padding: 24px;
+    border-right: 0;
+    border-bottom: 1px solid #292929;
+  }
+  .access-emblem,
+  .access-caption {
+    display: none;
+  }
+  .access-panel {
+    min-height: calc(100svh - 100px);
+    padding: 24px;
+  }
+  .access-form-wrap {
+    padding: 40px 0;
+  }
+  .access-form-wrap h1 {
+    max-width: 13ch;
+    font-size: clamp(30px, 8vw, 40px);
+  }
+  .admin-sidebar {
+    position: relative;
+    width: 100%;
+    padding: 24px 20px 12px;
+  }
+  .admin-sidebar > .admin-sidebar-label {
+    margin: 24px 8px 12px;
+  }
+  .admin-sidebar > nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .admin-sidebar > nav > button {
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+  .admin-sidebar-bottom {
+    flex-direction: row;
+    justify-content: space-between;
+    padding-top: 8px;
+  }
+  .admin-account,
+  .admin-sidebar-bottom > .text-link {
+    display: none;
+  }
+  .admin-signout {
+    margin-left: auto;
+  }
+  .admin-main {
+    margin-left: 0;
+    padding: 0 20px 40px;
+  }
+  .admin-topbar {
+    height: 64px;
+    margin-bottom: 28px;
+  }
+  .admin-page-heading {
+    gap: 20px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .admin-page-heading > .button {
+    width: 100%;
+    justify-content: center;
+  }
+  .admin-list-toolbar > .search-field {
+    width: 100%;
+  }
+  .admin-status-filter {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0;
+  }
+  .admin-status-filter > button {
+    padding-inline: 10px;
+  }
+  .admin-table {
+    min-width: 0;
+    table-layout: fixed;
+  }
+  .admin-table th,
+  .admin-table td {
+    padding: 16px 12px;
+  }
+  .admin-table th:first-child {
+    width: 72%;
+  }
+  .admin-table th:nth-child(2) {
+    width: 28%;
+  }
+  .admin-table th:last-child {
+    display: none;
+  }
+  .admin-table tr {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .admin-table td:first-child {
+    width: 72%;
+  }
+  .admin-table td:nth-child(2) {
+    width: 28%;
+    padding-left: 0;
+  }
+  .admin-table td:last-child {
+    width: 100%;
+    padding-top: 0;
+  }
+  .admin-table td {
+    border-bottom: 0;
+  }
+  .admin-table tbody tr + tr {
+    border-top: 1px solid #292929;
+  }
+  .admin-item-title {
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .admin-item-title > div:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .admin-thumbnail {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+  .admin-row-actions {
+    justify-content: flex-end;
+  }
+  .publication-status {
+    font-size: 11px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-spinner {
+    animation: none;
+  }
+}
+
+/* Hardware composition — scope stays on the unauthenticated entrance. */
+.admin-access--hardware {
+  --logo-cutout: #000;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100svh;
+  min-height: 600px;
+  padding: clamp(20px, 3.3vw, 48px) clamp(24px, 5vw, 80px);
+  background: #000;
+}
+.admin-access--hardware .access-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  max-width: 1360px;
+  margin-inline: auto;
+}
+.admin-access--hardware .access-back {
+  font-size: 12px;
+  min-height: 44px;
+}
+.admin-access--hardware .access-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.85fr);
+  align-items: center;
+  gap: clamp(32px, 5vw, 80px);
+  width: 100%;
+  max-width: 1180px;
+  min-height: 0;
+  margin: 0 auto;
+}
+.admin-access--hardware .access-identity {
+  min-height: 0;
+  height: 100%;
+  max-height: 720px;
+  border: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+.admin-access--hardware .access-hardware {
+  display: block;
+  width: 116%;
+  max-width: none;
+  height: 100%;
+  max-height: min(74svh, 720px);
+  object-fit: contain;
+  object-position: center;
+  /* Dissolve the studio floor into the page instead of exposing its square edge. */
+  mask-image:
+    linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
+    linear-gradient(to bottom, #000 88%, transparent);
+  mask-composite: intersect;
+}
+.admin-access--hardware .access-panel {
+  padding: 0;
+  min-height: 0;
+}
+.admin-access--hardware .access-form-wrap {
+  max-width: 400px;
+  padding: clamp(28px, 3vw, 40px) clamp(24px, 2.5vw, 36px) 24px;
+  border: 1px solid #272727;
+  border-radius: 14px;
+  background: #080808;
+  text-align: center;
+}
+.admin-access--hardware .access-form-emblem {
+  width: 36px;
+  height: 42px;
+  display: block;
+  margin: 0 auto 20px;
+  color: #f5f5f5;
+}
+.admin-access--hardware .access-form-wrap h1 {
+  font-size: clamp(24px, 2.3vw, 30px);
+  font-weight: 550;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  max-width: none;
+  text-wrap: balance;
+}
+.admin-access--hardware .access-intro {
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 12px 0 28px;
+  color: #a3a3a3;
+}
+.admin-access--hardware .access-form {
+  gap: 20px;
+  text-align: left;
+}
+.admin-access--hardware .admin-field > span:first-child {
+  font-size: 12px;
+  font-weight: 450;
+}
+.admin-access--hardware .admin-field input {
+  background: #101010;
+  border-color: #333;
+  border-radius: 7px;
+  min-height: 48px;
+  font-size: 16px;
+}
+.admin-access--hardware .admin-field input::placeholder {
+  color: #8f8f8f;
+  font-size: 13px;
+}
+.admin-access--hardware .access-form > .button {
+  border-radius: 7px;
+  min-height: 48px;
+  font-size: 13px;
+  margin-top: 4px;
+  transition: background 160ms ease;
+}
+.admin-access--hardware .access-restriction {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 11px;
+  color: #a3a3a3;
+  margin-top: 4px;
+}
+.admin-access--hardware .access-message {
+  padding: 0;
+  border: 0;
+  text-align: left;
+  gap: 16px;
+}
+.admin-access--hardware .access-message strong {
+  font-size: 14px;
+}
+.admin-access--hardware .access-message p {
+  font-size: 13px;
+}
+.admin-access--hardware .access-message .button {
+  width: 100%;
+  font-size: 12px;
+}
+.admin-access--hardware .access-loading {
+  justify-content: center;
+  font-size: 13px;
+  padding-block: 20px;
+}
+.admin-access--hardware .form-error {
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;
+}
+@media (max-width: 900px) and (min-width: 641px) {
+  .admin-access--hardware {
+    padding-inline: 28px;
+  }
+  .admin-access--hardware .access-stage {
+    gap: 16px;
+    grid-template-columns: minmax(0, 1fr) minmax(310px, 1fr);
+  }
+  .admin-access--hardware .access-hardware {
+    width: 120%;
+  }
+}
+@media (max-width: 640px) {
+  .admin-access--hardware {
+    height: 100svh;
+    min-height: 620px;
+    padding: 16px 24px 24px;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .admin-access--hardware .access-header .brand {
+    font-size: 20px;
+  }
+  .admin-access--hardware .access-header .brand svg {
+    width: 27px;
+  }
+  .admin-access--hardware .access-back {
+    font-size: 11px;
+    gap: 6px;
+  }
+  .admin-access--hardware .access-stage {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 8px;
+    max-width: 380px;
+    padding-top: 4px;
+  }
+  .admin-access--hardware .access-identity {
+    display: grid;
+    min-height: 0;
+    border: 0;
+  }
+  .admin-access--hardware .access-hardware {
+    width: 100%;
+    max-height: min(26svh, 240px);
+  }
+  .admin-access--hardware .access-panel {
+    padding: 0;
+    min-height: 0;
+  }
+  .admin-access--hardware .access-form-wrap {
+    padding: 24px 24px 20px;
+    max-width: none;
+    width: 100%;
+  }
+  .admin-access--hardware .access-form-emblem {
+    display: none;
+  }
+  .admin-access--hardware .access-form-wrap h1 {
+    font-size: 26px;
+  }
+  .admin-access--hardware .access-intro {
+    margin: 10px 0 20px;
+    font-size: 12px;
+  }
+  .admin-access--hardware .access-form {
+    gap: 16px;
+  }
+  .admin-access--hardware .access-restriction {
+    margin-top: 0;
+  }
+}
+@media (max-height: 740px) and (min-width: 641px) {
+  .admin-access--hardware {
+    padding-block: 20px;
+    min-height: 540px;
+  }
+  .admin-access--hardware .access-form-wrap {
+    padding-block: 24px 20px;
+  }
+  .admin-access--hardware .access-form-emblem {
+    margin-bottom: 16px;
+    width: 30px;
+    height: 35px;
+  }
+  .admin-access--hardware .access-intro {
+    margin-bottom: 20px;
+  }
+  .admin-access--hardware .access-form {
+    gap: 16px;
+  }
+}
+@media (max-height: 710px) and (max-width: 640px) {
+  .admin-access--hardware {
+    min-height: 540px;
+  }
+  .admin-access--hardware .access-stage {
+    grid-template-rows: minmax(0, 1fr);
+    padding-block: 16px;
+  }
+  .admin-access--hardware .access-identity {
+    display: none;
+  }
+}
+@media (max-height: 540px) {
+  .admin-access--hardware {
+    height: auto;
+    min-height: 100svh;
+  }
+  .admin-access--hardware .access-stage {
+    padding-block: 20px;
+  }
+  .admin-access--hardware .access-identity {
+    display: none;
+  }
+  .admin-access--hardware .access-stage {
+    grid-template-columns: 1fr;
+    max-width: 380px;
+  }
+}

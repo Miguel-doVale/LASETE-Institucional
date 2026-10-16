@@ -16,7 +16,7 @@ Comunidade acadêmica, estudantes interessados em participar e visitantes intere
 
 ## Capabilities and Constraints
 
-Sete páginas públicas, associadas à brincadeira LA Sete: Home, A liga, Membros, Projetos, Pesquisas, Atividades, Participar e contato. LASETE na mídia é uma aba de Atividades. A IA tem acesso destacado e inicialmente direciona ao Streamlit. React e Tailwind confirmados. Supabase aprovado para etapa posterior; não conectar banco ou autenticação nesta entrega.
+Sete páginas públicas, associadas à brincadeira LA Sete: Home, A liga, Membros, Projetos, Pesquisas, Atividades, Participar e contato. LASETE na mídia é uma aba de Atividades. A IA tem acesso destacado e inicialmente direciona ao Streamlit. React e Tailwind confirmados. Supabase integrado nesta etapa: Auth para login da diretoria, seis tabelas de conteúdo, site_settings, lasete_admins e Storage para imagens.
 
 ## Brand Commitments
 
@@ -24,7 +24,7 @@ Preservar o símbolo original. Direção revisada pelo responsável: preto neutr
 
 ## Operating Context
 
-O painel /admin fica fora da navegação pública. Escopo: membros, projetos, pesquisas, atividades, comunicados, mídia, contatos e seletivo. Qualquer administrador autorizado publica diretamente. Na prévia, edição local no navegador e indicação explícita de demonstração; autenticação e autorização reais serão implementadas com Supabase.
+O painel /admin fica fora da navegação pública. Escopo: membros, projetos, pesquisas, atividades, comunicados, mídia, contatos e seletivo. Qualquer administrador autorizado publica diretamente. Acesso por e-mail e senha via Supabase Auth e autorização pela tabela lasete_admins. Escrita e leitura de rascunhos restritas por RLS aos administradores. Conteúdos e configurações persistem no banco; imagens novas vão para o bucket lasete-images. Sem cadastro público no painel.
 
 ## Evidence on Hand
 

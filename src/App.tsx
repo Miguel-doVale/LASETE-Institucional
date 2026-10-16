@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './lib/auth';
 import { ContentProvider } from './lib/content';
 import { Layout } from './components/Layout';
 import NotFound from './pages/NotFound';
@@ -26,29 +27,31 @@ const Participate = lazy(() =>
 export default function App() {
   return (
     <BrowserRouter>
-      <ContentProvider>
-        <Suspense
-          fallback={
-            <div className="route-loading" role="status">
-              Abrindo a liga<span>...</span>
-            </div>
-          }
-        >
-          <Routes>
-            <Route path="/admin" element={<Admin />} />
-            <Route element={<Layout />}>
-              <Route index element={<Home />} />
-              <Route path="a-liga" element={<About />} />
-              <Route path="membros" element={<Members />} />
-              <Route path="projetos" element={<Projects />} />
-              <Route path="pesquisas" element={<Research />} />
-              <Route path="atividades" element={<Activities />} />
-              <Route path="participar" element={<Participate />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
-          </Routes>
-        </Suspense>
-      </ContentProvider>
+      <AuthProvider>
+        <ContentProvider>
+          <Suspense
+            fallback={
+              <div className="route-loading" role="status">
+                Abrindo a liga<span>...</span>
+              </div>
+            }
+          >
+            <Routes>
+              <Route path="/admin" element={<Admin />} />
+              <Route element={<Layout />}>
+                <Route index element={<Home />} />
+                <Route path="a-liga" element={<About />} />
+                <Route path="membros" element={<Members />} />
+                <Route path="projetos" element={<Projects />} />
+                <Route path="pesquisas" element={<Research />} />
+                <Route path="atividades" element={<Activities />} />
+                <Route path="participar" element={<Participate />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
+            </Routes>
+          </Suspense>
+        </ContentProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
