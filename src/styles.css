@@ -1497,52 +1497,134 @@ p {
   max-width: 70ch;
 }
 .not-found {
-  min-height: min(800px, 100svh);
-  padding-block: 172px 100px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: clamp(48px, 7vw, 100px);
+  padding-block: 104px 88px;
 }
-.not-found-visual {
+.ascii-404 {
+  width: 100%;
+  margin-inline: auto;
+}
+.ascii-404-object {
+  position: relative;
+  height: clamp(360px, 52svh, 600px);
+  cursor: default;
+  user-select: none;
+  touch-action: pan-y;
+  outline-offset: -6px;
+}
+.ascii-404-object > div {
+  height: 100%;
+}
+.ascii-404-fallback {
+  height: 100%;
   margin: 0;
-  justify-self: center;
-  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: var(--font-code);
-  font-size: clamp(11px, 1.5vw, 21px);
-  font-weight: 400;
-  line-height: 1.45;
-  letter-spacing: 0;
+  font-size: clamp(10px, 2.4vw, 22px);
+  line-height: 1.4;
+  color: var(--foreground);
   user-select: none;
 }
+.ascii-404-hint {
+  min-height: 24px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.ascii-404:has(.ascii-404-fallback) .ascii-404-hint {
+  visibility: hidden;
+}
 .not-found-copy {
-  min-width: 0;
+  width: min(640px, 100%);
+  margin: 24px auto 0;
+  text-align: center;
 }
 .not-found h1 {
-  max-width: 12ch;
-  font-size: clamp(32px, 3.4vw, 48px);
+  font-size: clamp(30px, 3vw, 40px);
 }
 .not-found-copy > p {
-  max-width: 44ch;
-  margin-top: 20px;
+  max-width: 46ch;
+  margin: 16px auto 0;
   color: var(--muted);
 }
 .not-found-actions {
   display: flex;
+  justify-content: center;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 32px;
+  gap: 28px;
+  margin-top: 24px;
 }
 .not-found-copy > .not-found-path {
-  display: grid;
-  gap: 6px;
-  margin-top: 36px;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-top: 24px;
   font-size: 12px;
   line-height: 1.6;
 }
 .not-found-path code {
+  min-width: 0;
   font-family: var(--font-code);
   overflow-wrap: anywhere;
+}
+.not-found-suggestions {
+  max-width: 1000px;
+  margin: 52px auto 0;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+.not-found-suggestions h2 {
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+}
+.not-found-suggestions ul {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+}
+.not-found-suggestions li {
+  min-width: 0;
+}
+.not-found-suggestions a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 88px;
+  padding-block: 12px;
+}
+.not-found-suggestions a > span {
+  display: grid;
+  gap: 6px;
+}
+.not-found-suggestions strong {
+  font-size: 16px;
+  font-weight: 550;
+}
+.not-found-suggestions a > span > span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.not-found-suggestions svg {
+  flex-shrink: 0;
+  color: var(--muted);
+  transition:
+    transform 0.16s ease-out,
+    color 0.16s ease-out;
+}
+.not-found-suggestions a:hover svg {
+  transform: translateX(4px);
+  color: var(--foreground);
 }
 /* A compact institutional footer. */
 .site-footer {
@@ -2993,21 +3075,41 @@ p {
     padding: 28px 24px;
   }
   .not-found {
-    min-height: 0;
-    grid-template-columns: 1fr;
-    gap: 40px;
-    padding-block: 132px 64px;
+    padding-block: 92px 64px;
   }
-  .not-found-visual {
-    font-size: clamp(11px, 3.2vw, 18px);
+  .ascii-404 {
+    width: calc(100% + 24px);
+    margin-inline: -12px;
+  }
+  .ascii-404-object {
+    height: clamp(210px, 31svh, 280px);
+  }
+  .ascii-404-hint {
+    font-size: 11px;
+  }
+  .not-found-copy {
+    margin-top: 24px;
   }
   .not-found h1 {
-    max-width: 15ch;
-    font-size: 36px;
+    font-size: 30px;
   }
   .not-found-actions {
-    align-items: stretch;
-    flex-direction: column;
+    gap: 16px;
+  }
+  .not-found-suggestions {
+    margin-top: 40px;
+    padding-top: 28px;
+  }
+  .not-found-suggestions ul {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-top: 12px;
+  }
+  .not-found-suggestions li + li {
+    border-top: 1px solid var(--border);
+  }
+  .not-found-suggestions a {
+    min-height: 88px;
   }
   /* Keep the editorial panel's established flows and compact mobile sidebar. */
   .admin-sidebar {

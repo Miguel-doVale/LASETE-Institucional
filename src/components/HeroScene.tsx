@@ -17,6 +17,12 @@ export type PointerState = {
   ry: number;
   invalidate?: () => void;
 };
+export type AsciiModel = {
+  makeGeometry: () => THREE.BufferGeometry;
+  label: string;
+  fallback: ReactNode;
+  fitPadding?: number;
+};
 // A real six-face volume, rather than an extrusion of the flat logo silhouette.
 // Gaps on the side faces reproduce the three characteristic cuts of the emblem.
 function makeVolume() {
@@ -138,21 +144,43 @@ void main() {
 function Symbol({
   pointer,
   reduced,
+  model,
 }: {
   pointer: RefObject<PointerState>;
   reduced: boolean;
+  model?: AsciiModel;
 }) {
   const group = useRef<THREE.Group>(null);
   const { camera, raycaster, invalidate, size } = useThree();
   useEffect(() => {
+    if (model) {
+      invalidate();
+      return;
+    }
     camera.position.z = Math.max(
       7.1,
       7.1 / ((size.width / size.height) * 1.15),
     );
     camera.updateProjectionMatrix();
     invalidate();
-  }, [camera, size.width, size.height, invalidate]);
-  const geometry = useMemo(makeVolume, []);
+  }, [camera, size.width, size.height, invalidate, model]);
+  const geometry = useMemo(() => {
+    const value = model ? model.makeGeometry() : makeVolume();
+    value.computeBoundingBox();
+    return value;
+  }, [model]);
+  useEffect(() => {
+    if (model) {
+      geometry.setDrawRange(
+        0,
+        Math.min(
+          geometry.getAttribute('position').count,
+          Math.max(2400, Math.round((size.width * size.height) / 60)),
+        ),
+      );
+      invalidate();
+    }
+  }, [geometry, model, size.width, size.height, invalidate]);
   const atlas = useMemo(glyphAtlas, []);
   const uniforms = useMemo(
     () => ({
@@ -171,17 +199,20 @@ function Symbol({
     () => ({
       inverse: new THREE.Matrix4(),
       ray: new THREE.Ray(),
-      bounds: new THREE.Box3(
-        new THREE.Vector3(-1.18, -1.25, -1.18),
-        new THREE.Vector3(1.18, 1.25, 1.18),
-      ),
+      bounds: model
+        ? geometry.boundingBox!.clone()
+        : new THREE.Box3(
+            new THREE.Vector3(-1.18, -1.25, -1.18),
+            new THREE.Vector3(1.18, 1.25, 1.18),
+          ),
+      framing: new THREE.Box3(),
       cursor: new THREE.Vector2(),
       hit: new THREE.Vector3(),
       previous: new THREE.Vector3(50, 50, 50),
       lastTrail: 0,
       index: 1,
     }),
-    [],
+    [geometry, model],
   );
   useEffect(() => {
     pointer.current.invalidate = invalidate;
@@ -214,6 +245,28 @@ function Symbol({
       ? y
       : THREE.MathUtils.damp(group.current.rotation.y, y, 15, delta);
     group.current.updateMatrixWorld();
+    let framing = false;
+    if (model) {
+      // Fit the rotated word, including its depth, instead of clipping it on a turn.
+      const box = math.framing
+        .copy(math.bounds)
+        .applyMatrix4(group.current.matrixWorld);
+      const halfWidth = Math.max(Math.abs(box.min.x), Math.abs(box.max.x));
+      const halfHeight = Math.max(Math.abs(box.min.y), Math.abs(box.max.y));
+      const tangent = Math.tan((38 * Math.PI) / 360);
+      const distance =
+        Math.max(
+          halfHeight / tangent,
+          halfWidth / ((tangent * size.width) / size.height),
+        ) *
+          (model.fitPadding ?? 1.16) +
+        Math.max(0, box.max.z);
+      camera.position.z = reduced
+        ? distance
+        : THREE.MathUtils.damp(camera.position.z, distance, 15, delta);
+      camera.updateMatrixWorld();
+      framing = Math.abs(camera.position.z - distance) > 0.001;
+    }
     for (let i = 0; i < 6; i++)
       uniforms.uHits.value[i].w = reduced
         ? 0
@@ -252,12 +305,13 @@ function Symbol({
       ((uniforms.uHits.value[0].w > 0.001 && !hitting) ||
         uniforms.uHits.value.slice(1).some((hit) => hit.w > 0.001) ||
         Math.abs(group.current.rotation.x - x) > 0.0001 ||
-        Math.abs(group.current.rotation.y - y) > 0.0001)
+        Math.abs(group.current.rotation.y - y) > 0.0001 ||
+        framing)
     )
       invalidate();
   });
   return (
-    <group ref={group} rotation={[0.34, Math.PI / 4, 0]}>
+    <group ref={group} rotation={[pointer.current.rx, pointer.current.ry, 0]}>
       <points geometry={geometry} frustumCulled={false}>
         <shaderMaterial
           uniforms={uniforms}
@@ -272,7 +326,7 @@ function Symbol({
   );
 }
 class SceneBoundary extends Component<
-  { children: ReactNode },
+  { children: ReactNode; fallback: ReactNode },
   { failed: boolean }
 > {
   state = { failed: false };
@@ -280,40 +334,40 @@ class SceneBoundary extends Component<
     return { failed: true };
   }
   render() {
-    return this.state.failed ? (
-      <div className="scene-fallback">
-        <Emblem />
-      </div>
-    ) : (
-      this.props.children
-    );
+    return this.state.failed ? this.props.fallback : this.props.children;
   }
 }
 export default function HeroScene({
   pointer,
   visible,
   reduced,
+  model,
 }: {
   pointer: RefObject<PointerState>;
   visible: boolean;
   reduced: boolean;
+  model?: AsciiModel;
 }) {
+  const fallback = model?.fallback ?? (
+    <div className="scene-fallback">
+      <Emblem />
+    </div>
+  );
   return (
-    <SceneBoundary>
+    <SceneBoundary fallback={fallback}>
       <Canvas
         camera={{ position: [0, 0, 7.1], fov: 38 }}
         dpr={[1, 1.35]}
         gl={{ alpha: true, antialias: false, powerPreference: 'low-power' }}
         frameloop={visible ? 'demand' : 'never'}
-        fallback={
-          <div className="scene-fallback">
-            <Emblem />
-          </div>
-        }
+        fallback={fallback}
         role="img"
-        aria-label="Volume da LASETE composto apenas por caracteres ASCII"
+        aria-label={
+          model?.label ??
+          'Volume da LASETE composto apenas por caracteres ASCII'
+        }
       >
-        <Symbol pointer={pointer} reduced={reduced} />
+        <Symbol pointer={pointer} reduced={reduced} model={model} />
       </Canvas>
     </SceneBoundary>
   );

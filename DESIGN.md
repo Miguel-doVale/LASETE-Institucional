@@ -31,3 +31,7 @@ Conteúdos entram uma vez conforme o scroll, com fade, deslocamento de 20px e se
 A linha de progresso da navbar foi removida após avaliação do responsável. A continuidade da Matrix é espacial: a máscara acompanha as áreas escolhidas enquanto o campo mantém a mesma fase. Ela não reinicia na passagem entre hero e apresentação e apaga antes das seções densas.
 
 Preferências de movimento e breakpoints são acompanhados em tempo real. Alterar a preferência encerra/reverte as animações sem recarregar. O seletor de projetos acompanha a orientação visual no teclado; o menu móvel fecha e devolve o foco à marca ao entrar no desktop.
+
+## Página não encontrada
+
+O estado 404 usa números grandes em ASCII 3D centralizados, com dispersão localizada no mouse e orientação fixa, sem rotação por arraste, teclado ou toque. Reaproveita o motor da hero; demanda de renderização, limite de resolução, pausa fora da tela e alternativa estática preservam a navegação. Mensagem, Home e contato aparecem abaixo; três páginas públicas distintas são sorteadas a cada visita e permanecem estáveis durante a interação.

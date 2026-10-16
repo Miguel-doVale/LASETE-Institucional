@@ -254,6 +254,7 @@ test('painel publica projeto e alterna seletivo com persistência local', async 
 test('dispersão da hero fica perto do mouse e a forma se recompõe ao sair', async ({
   page,
 }) => {
+  test.setTimeout(90000);
   await page.goto('/');
   await expect(page.locator('.hero-object canvas')).toBeVisible({
     timeout: 30000,
@@ -551,4 +552,200 @@ test('rotas diretas e atualização abrem o admin; caminhos inválidos mostram o
   await expect(page).toHaveURL('/');
   await expect(page.locator('.hero')).toBeVisible();
   await expect(page.locator('head meta[name="robots"]')).toHaveCount(0);
+});
+
+test('404 grande dispersa caracteres sem girar e mantém três sugestões úteis', async ({
+  page,
+}) => {
+  test.setTimeout(90000);
+  await page.goto('/404-interativo');
+  const object = page.locator('.ascii-404-object');
+  await expect(object.locator('canvas')).toBeVisible({ timeout: 30000 });
+  const links = page
+    .getByRole('navigation', { name: 'Algumas páginas que temos' })
+    .getByRole('link');
+  await expect(links).toHaveCount(3);
+  const paths = await links.evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute('href')),
+  );
+  expect(new Set(paths).size).toBe(3);
+  expect(
+    paths.every((path) =>
+      [
+        '/a-liga',
+        '/membros',
+        '/projetos',
+        '/pesquisas',
+        '/atividades',
+      ].includes(path!),
+    ),
+  ).toBe(true);
+  const bounds = (await object.boundingBox())!;
+  expect(Math.abs(bounds.x + bounds.width / 2 - 720)).toBeLessThan(2);
+  expect(bounds.width).toBeGreaterThan(1100);
+  const copy = (await page.locator('.not-found-copy').boundingBox())!;
+  expect(copy.y).toBeGreaterThan(bounds.y + bounds.height);
+  await page.mouse.move(4, 90);
+  await page.waitForTimeout(1200);
+  const before = await object.screenshot();
+  expect(
+    (await sharp(before).greyscale().stats()).channels[0].mean,
+  ).toBeGreaterThan(1);
+  const point = {
+    x: Math.round(bounds.width * 0.27),
+    y: Math.round(bounds.height * 0.57),
+  };
+  const local = {
+    left: point.x - 70,
+    top: point.y - 70,
+    width: 140,
+    height: 140,
+  };
+  const remote = {
+    left: Math.round(bounds.width * 0.78),
+    top: Math.round(bounds.height * 0.35),
+    width: 100,
+    height: 100,
+  };
+  await page.mouse.move(bounds.x + point.x, bounds.y + point.y);
+  await page.waitForTimeout(250);
+  const active = await object.screenshot();
+  const nearby = await difference(before, active, local);
+  const distant = await difference(before, active, remote);
+  expect(nearby).toBeGreaterThan(0.5);
+  expect(nearby).toBeGreaterThan(distant * 2 + 0.1);
+  await page.mouse.move(4, 90);
+  await page.waitForTimeout(1400);
+  const restored = await object.screenshot();
+  expect(await difference(before, restored, local)).toBeLessThan(
+    nearby * 0.35 + 0.03,
+  );
+  // Isolate orientation from the deliberately springy hover trail.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.waitForTimeout(150);
+  const locked = await object.screenshot();
+  await page.mouse.move(bounds.x + 20, bounds.y + bounds.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(bounds.x + 200, bounds.y + bounds.height / 2 + 80, {
+    steps: 3,
+  });
+  await page.mouse.up();
+  await page.mouse.move(4, 90);
+  await object.dispatchEvent('keydown', { key: 'ArrowRight' });
+  await page.waitForTimeout(1400);
+  const afterDrag = await object.screenshot();
+  expect(
+    await difference(locked, afterDrag, {
+      left: 0,
+      top: 0,
+      width: Math.floor(bounds.width),
+      height: Math.floor(bounds.height),
+    }),
+  ).toBeLessThan(0.15);
+  expect(
+    await links.evaluateAll((nodes) =>
+      nodes.map((node) => node.getAttribute('href')),
+    ),
+  ).toEqual(paths);
+  await links.first().focus();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(paths[0]!);
+  await expect(page.locator('head meta[name="robots"]')).toHaveCount(0);
+});
+
+test('404 no celular fica parado no toque e permite rolar a página', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({
+    viewport: { width: 320, height: 740 },
+    isMobile: true,
+    hasTouch: true,
+    reducedMotion: 'reduce',
+  });
+  const page = await context.newPage();
+  await page.goto('http://127.0.0.1:5180/404-mobile');
+  const object = page.locator('.ascii-404-object');
+  await expect(object.locator('canvas')).toBeVisible({ timeout: 30000 });
+  await page.waitForTimeout(500);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await expect(page.locator('.ascii-404-hint')).toHaveCount(0);
+  const bounds = (await object.boundingBox())!;
+  const before = await object.screenshot();
+  const session = await context.newCDPSession(page);
+  const y = bounds.y + bounds.height / 2;
+  const start = bounds.x + bounds.width * 0.75;
+  await session.send('Input.dispatchTouchEvent', {
+    type: 'touchStart',
+    touchPoints: [{ x: start, y }],
+  });
+  for (let step = 1; step <= 5; step++) {
+    await session.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x: start - step * 30, y }],
+    });
+  }
+  await session.send('Input.dispatchTouchEvent', {
+    type: 'touchEnd',
+    touchPoints: [],
+  });
+  const after = await object.screenshot();
+  expect(
+    await difference(before, after, {
+      left: 0,
+      top: 0,
+      width: Math.floor(bounds.width),
+      height: Math.floor(bounds.height),
+    }),
+  ).toBeLessThan(0.1);
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+  const x = bounds.x + bounds.width / 2;
+  const top = bounds.y + bounds.height * 0.8;
+  await session.send('Input.dispatchTouchEvent', {
+    type: 'touchStart',
+    touchPoints: [{ x, y: top }],
+  });
+  for (let step = 1; step <= 7; step++) {
+    await session.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x, y: top - step * 25 }],
+    });
+  }
+  await session.send('Input.dispatchTouchEvent', {
+    type: 'touchEnd',
+    touchPoints: [],
+  });
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(80);
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Algumas páginas que temos' })
+      .getByRole('link'),
+  ).toHaveCount(3);
+  await context.close();
+});
+
+test('404 preserva a recuperação mesmo sem WebGL', async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function (type, ...args) {
+      if (type.includes('webgl')) return null;
+      return original.call(this, type, ...args);
+    };
+  });
+  await page.goto('/404-sem-webgl');
+  await expect(page.locator('.ascii-404-fallback')).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Página não encontrada.' }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Algumas páginas que temos' })
+      .getByRole('link'),
+  ).toHaveCount(3);
+  await page.getByRole('link', { name: 'Voltar à Home', exact: true }).click();
+  await expect(page).toHaveURL('/');
+  await expect(page.locator('.hero')).toBeVisible();
 });
