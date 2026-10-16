@@ -494,3 +494,61 @@ test('mudar a preferência de movimento encerra a Matrix e revela o conteúdo se
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await expect(page.locator('.matrix-canvas')).toHaveCount(1);
 });
+
+test('rotas diretas e atualização abrem o admin; caminhos inválidos mostram o 404 da liga', async ({
+  page,
+}) => {
+  await page.goto('/admin');
+  await expect(
+    page.getByRole('navigation', { name: 'Seções do painel' }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole('navigation', { name: 'Seções do painel' }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Página não encontrada.' }),
+  ).toHaveCount(0);
+
+  for (const route of ['/pagina-inexistente', '/admin/rota-inexistente']) {
+    await page.goto(route);
+    await expect(
+      page.getByRole('heading', { name: 'Página não encontrada.' }),
+    ).toBeVisible();
+    await expect(page).toHaveTitle('Página não encontrada · LASETE');
+    await expect(page.locator('.not-found-path code')).toHaveText(route);
+    await expect(page.locator('head meta[name="robots"]')).toHaveAttribute(
+      'content',
+      'noindex',
+    );
+    await page.reload();
+    await expect(
+      page.getByRole('heading', { name: 'Página não encontrada.' }),
+    ).toBeVisible();
+  }
+
+  await page
+    .getByRole('link', { name: 'Falar com a LASETE', exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/participar#contato$/);
+  await expect(page.locator('head meta[name="robots"]')).toHaveCount(0);
+  await expect(page.locator('#contato')).toBeInViewport();
+
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto('/caminho-' + 'inexistente'.repeat(30));
+  await expect(
+    page.getByRole('heading', { name: 'Página não encontrada.' }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  const home = page.getByRole('link', { name: 'Voltar à Home', exact: true });
+  await home.focus();
+  await expect(home).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL('/');
+  await expect(page.locator('.hero')).toBeVisible();
+  await expect(page.locator('head meta[name="robots"]')).toHaveCount(0);
+});

@@ -1,7 +1,8 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ContentProvider } from './lib/content';
 import { Layout } from './components/Layout';
+import NotFound from './pages/NotFound';
 const Home = lazy(() => import('./pages/Home'));
 const Admin = lazy(() => import('./pages/Admin'));
 const About = lazy(() =>
@@ -43,22 +44,7 @@ export default function App() {
               <Route path="pesquisas" element={<Research />} />
               <Route path="atividades" element={<Activities />} />
               <Route path="participar" element={<Participate />} />
-              <Route
-                path="*"
-                element={
-                  <section className="not-found shell">
-                    <span className="meta">404 / Caminho não encontrado</span>
-                    <h1>
-                      Vamos voltar
-                      <br />
-                      para a liga?
-                    </h1>
-                    <Link className="text-link" to="/">
-                      Ir para a Home
-                    </Link>
-                  </section>
-                }
-              />
+              <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
         </Suspense>

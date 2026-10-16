@@ -1497,11 +1497,52 @@ p {
   max-width: 70ch;
 }
 .not-found {
-  padding-block: 180px 100px;
+  min-height: min(800px, 100svh);
+  padding-block: 172px 100px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: clamp(48px, 7vw, 100px);
+}
+.not-found-visual {
+  margin: 0;
+  justify-self: center;
+  color: var(--foreground);
+  font-family: var(--font-code);
+  font-size: clamp(11px, 1.5vw, 21px);
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0;
+  user-select: none;
+}
+.not-found-copy {
+  min-width: 0;
 }
 .not-found h1 {
-  font-size: 52px;
-  margin-block: 24px;
+  max-width: 12ch;
+  font-size: clamp(32px, 3.4vw, 48px);
+}
+.not-found-copy > p {
+  max-width: 44ch;
+  margin-top: 20px;
+  color: var(--muted);
+}
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+.not-found-copy > .not-found-path {
+  display: grid;
+  gap: 6px;
+  margin-top: 36px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.not-found-path code {
+  font-family: var(--font-code);
+  overflow-wrap: anywhere;
 }
 /* A compact institutional footer. */
 .site-footer {
@@ -2951,8 +2992,22 @@ p {
     max-height: 100svh;
     padding: 28px 24px;
   }
+  .not-found {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding-block: 132px 64px;
+  }
+  .not-found-visual {
+    font-size: clamp(11px, 3.2vw, 18px);
+  }
   .not-found h1 {
-    font-size: 38px;
+    max-width: 15ch;
+    font-size: 36px;
+  }
+  .not-found-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
   /* Keep the editorial panel's established flows and compact mobile sidebar. */
   .admin-sidebar {

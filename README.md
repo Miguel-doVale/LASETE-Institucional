@@ -17,6 +17,14 @@ npm run build
 npm run test:e2e
 ```
 
+## Deploy na Vercel
+
+Use o preset **Vite**, o comando de build `npm run build` e o diretório de saída `dist`.
+O `vercel.json` na raiz encaminha acessos diretos e atualizações de rotas como `/admin`
+e `/membros` para o React Router. Endereços desconhecidos exibem o 404 da LASETE.
+Depois de enviar essa configuração ao repositório conectado, faça um novo deploy para
+aplicar a correção; repetir um deploy antigo não inclui arquivos locais novos.
+
 ## Prévia editorial
 
 `/admin` fica fora da navegação pública. Esta entrega não contém autenticação ou autorização reais: o painel é uma demonstração visual com dados salvos no localStorage do navegador. Não publicar o painel como área administrativa de produção. A integração com Supabase Auth, Database e Storage está prevista para a próxima etapa; qualquer administrador autorizado poderá publicar diretamente. O fluxo não depende de serviço externo nesta prévia.
