@@ -237,11 +237,9 @@ export function Layout() {
       <Matrix
         route={pathname}
         fullPage={['/a-liga', '/membros', '/participar'].includes(pathname)}
-        intensity={
-          ['/projetos', '/pesquisas', '/atividades'].includes(pathname)
-            ? 1.6
-            : 1
-        }
+        immersiveIntro={['/projetos', '/pesquisas', '/atividades'].includes(
+          pathname,
+        )}
       />
       <main ref={main} id="main-content" tabIndex={-1}>
         <Outlet />

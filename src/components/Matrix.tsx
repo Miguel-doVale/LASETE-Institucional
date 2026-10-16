@@ -9,10 +9,12 @@ export function Matrix({
   route,
   intensity = 1,
   fullPage = false,
+  immersiveIntro = false,
 }: {
   route: string;
   intensity?: number;
   fullPage?: boolean;
+  immersiveIntro?: boolean;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const zones = useRef<HTMLElement[]>([]);
@@ -67,7 +69,7 @@ export function Matrix({
       );
       rain.fillStyle = '#000000';
       rain.fillRect(0, 0, width, height);
-      if (fullPage) {
+      if (fullPage || immersiveIntro) {
         rain.font = '13px monospace';
         drops.forEach((y, i) => {
           for (let tail = 0; tail < 8; tail++) {
@@ -91,7 +93,18 @@ export function Matrix({
         ?.getBoundingClientRect();
       const intros = zones.current
         .filter((zone) => zone.dataset.matrix === 'intro')
-        .map((zone) => zone.getBoundingClientRect());
+        .map((zone) => {
+          const bounds = zone.getBoundingClientRect();
+          const next = zone.nextElementSibling?.getBoundingClientRect();
+          const end =
+            immersiveIntro && next
+              ? Math.min(
+                  next.bottom,
+                  next.top + Math.min(520, window.innerHeight * 0.65),
+                )
+              : bounds.bottom;
+          return { top: bounds.top, bottom: end };
+        });
       return (y: number) => {
         let alpha = fullPage ? 0.72 * smooth(60, 120, y) : 0;
         if (hero) {
@@ -106,9 +119,18 @@ export function Matrix({
         }
         for (const intro of intros) {
           const intensity =
-            0.32 *
-            smooth(intro.top + 76, intro.top + 176, y) *
-            (1 - smooth(intro.bottom - 140, intro.bottom + 20, y));
+            (immersiveIntro ? 0.8 : 0.32) *
+            smooth(
+              intro.top + (immersiveIntro ? 12 : 76),
+              intro.top + (immersiveIntro ? 96 : 176),
+              y,
+            ) *
+            (1 -
+              smooth(
+                intro.bottom - (immersiveIntro ? 280 : 140),
+                intro.bottom + (immersiveIntro ? 0 : 20),
+                y,
+              ));
           alpha = Math.max(alpha, intensity);
         }
         return alpha;
@@ -133,15 +155,17 @@ export function Matrix({
       last = time;
       rain.fillStyle = 'rgba(0,0,0,.12)';
       rain.fillRect(0, 0, field.width, field.height);
-      rain.font = fullPage ? '13px monospace' : '12px monospace';
+      rain.font =
+        fullPage || immersiveIntro ? '13px monospace' : '12px monospace';
       drops.forEach((y, i) => {
-        rain.fillStyle = fullPage
-          ? i % 6 === 0
-            ? 'rgba(240,240,240,.7)'
-            : 'rgba(195,195,195,.46)'
-          : i % 6 === 0
-            ? 'rgba(230,230,230,.38)'
-            : 'rgba(170,170,170,.24)';
+        rain.fillStyle =
+          fullPage || immersiveIntro
+            ? i % 6 === 0
+              ? 'rgba(240,240,240,.7)'
+              : 'rgba(195,195,195,.46)'
+            : i % 6 === 0
+              ? 'rgba(230,230,230,.38)'
+              : 'rgba(170,170,170,.24)';
         rain.fillText(Math.random() > 0.5 ? '1' : '0', i * 30, y * 18);
         drops[i] =
           y * 18 > field.height && Math.random() > 0.975
@@ -187,7 +211,7 @@ export function Matrix({
       window.removeEventListener('resize', onResize);
       document.removeEventListener('visibilitychange', visibility);
     };
-  }, [reduced, intensity, fullPage]);
+  }, [reduced, intensity, fullPage, immersiveIntro]);
   return reduced ? null : (
     <canvas ref={ref} className="matrix-canvas" aria-hidden="true" />
   );

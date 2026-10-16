@@ -77,3 +77,7 @@ O menu mobile substitui os ícones e setas por nomes em tipografia maior, divis�
 ### Alcance final da Matrix por página
 
 A liga, Membros e Participar e contato mantêm a Matrix no fundo completo. Projetos, Pesquisas e Atividades usam o efeito somente no cabeçalho, apagando após a abertura para liberar a leitura. A Home mantém sua composição anterior. Esta decisão substitui a aplicação integral anterior nas seis páginas.
+
+### Abertura mais imersiva
+
+Projetos, Pesquisas e Atividades mantêm a Matrix durante toda a abertura e nos primeiros 65% de viewport (máximo 520px) da seção seguinte. Rastros são desenhados desde o início, com contraste equivalente ao das páginas de fundo contínuo. O efeito sai gradualmente nos últimos 280px dessa área. O alcance acompanha a posição real da seção, não uma distância fixa de rolagem.

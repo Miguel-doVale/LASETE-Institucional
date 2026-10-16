@@ -118,9 +118,30 @@ test('Matrix respeita o alcance de cada página interna mobile', async ({
         '[data-matrix="intro"]',
       )!;
       window.scrollTo({
-        top: intro.offsetTop + intro.offsetHeight + 80,
+        top: intro.offsetTop + intro.offsetHeight + 60,
         behavior: 'instant',
       });
+    });
+    await expect
+      .poll(() =>
+        page.locator('.matrix-canvas').evaluate((canvas: HTMLCanvasElement) =>
+          canvas
+            .getContext('2d')!
+            .getImageData(0, 0, canvas.width, canvas.height)
+            .data.some((value, index) => index % 4 === 3 && value > 0),
+        ),
+      )
+      .toBe(true);
+    await page.evaluate(() => {
+      const intro = document.querySelector<HTMLElement>(
+        '[data-matrix="intro"]',
+      )!;
+      const next = intro.nextElementSibling!;
+      const end =
+        next.getBoundingClientRect().top +
+        window.scrollY +
+        Math.min(520, innerHeight * 0.65);
+      window.scrollTo({ top: end + 40, behavior: 'instant' });
     });
     await expect
       .poll(() =>
