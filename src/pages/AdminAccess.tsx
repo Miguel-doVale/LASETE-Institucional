@@ -15,6 +15,10 @@ import {
   LoaderCircle,
   LockKeyhole,
   LogOut,
+  ChevronUp,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Brand, Emblem } from '@/components/Brand';
 import { Button } from '@/components/ui/button';
@@ -95,6 +99,21 @@ export default function AdminAccess({ children }: { children: ReactNode }) {
           />
         </section>
         <section className="access-panel" aria-label="Acesso administrativo">
+          <div className="access-device-top" aria-hidden="true">
+            <span className="device-port" />
+            <span className="device-port" />
+            <span className="device-antenna" />
+          </div>
+          <div className="access-device-brand" aria-hidden="true">
+            <span>LASETE</span>
+            <span>HackRF One / PortaPack</span>
+          </div>
+          <div className="access-device-screws" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+            <i />
+          </div>
           <div className="access-form-wrap">
             <Emblem className="access-form-emblem" />
             <h1>
@@ -205,6 +224,23 @@ export default function AdminAccess({ children }: { children: ReactNode }) {
                 {error}
               </p>
             )}
+          </div>
+          <div className="access-device-controls" aria-hidden="true">
+            <div className="device-signal">
+              <span />
+              <span />
+              <span />
+              <small>SDR</small>
+            </div>
+            <div className="device-dial">
+              <Emblem />
+            </div>
+            <div className="device-direction">
+              <ChevronUp />
+              <ChevronLeft />
+              <ChevronRight />
+              <ChevronDown />
+            </div>
           </div>
         </section>
       </div>

@@ -17,10 +17,30 @@ export function Matrix({
   const wake = useRef<(() => void) | null>(null);
   const reduced = useReducedMotion();
   useLayoutEffect(() => {
-    zones.current = Array.from(
-      document.querySelectorAll<HTMLElement>('[data-matrix]'),
-    );
-    wake.current?.();
+    const refresh = () => {
+      zones.current = Array.from(
+        document.querySelectorAll<HTMLElement>('[data-matrix]'),
+      );
+      wake.current?.();
+    };
+    refresh();
+    // Lazy routes can commit their ambient region after this layout effect.
+    const observer = new MutationObserver((records) => {
+      if (
+        records.some((record) =>
+          [...record.addedNodes, ...record.removedNodes].some(
+            (node) =>
+              node instanceof Element &&
+              (node.matches('[data-matrix]') ||
+                !!node.querySelector('[data-matrix]')),
+          ),
+        )
+      )
+        refresh();
+    });
+    const root = document.getElementById('root');
+    if (root) observer.observe(root, { childList: true, subtree: true });
+    return () => observer.disconnect();
   }, [route]);
   useEffect(() => {
     const canvas = ref.current;

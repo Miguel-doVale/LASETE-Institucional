@@ -26,6 +26,13 @@ export function useAsciiInteraction(
     rx: number;
     ry: number;
   } | null>(null);
+  const releaseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (releaseTimer.current) clearTimeout(releaseTimer.current);
+    },
+    [],
+  );
   const [visible, setVisible] = useState(true);
   const [dragging, setDragging] = useState(false);
   const reduced = useReducedMotion();
@@ -54,7 +61,14 @@ export function useAsciiInteraction(
   };
   const release = (event: PointerEvent<HTMLDivElement>) => {
     drag.current = null;
-    pointer.current.hover = 0;
+    if (releaseTimer.current) clearTimeout(releaseTimer.current);
+    if (event.pointerType === 'touch' && rotatable && !reduced) {
+      // Keep a short tap alive long enough for the demand-driven renderer to register a hit.
+      releaseTimer.current = setTimeout(() => {
+        pointer.current.hover = 0;
+        pointer.current.invalidate?.();
+      }, 180);
+    } else pointer.current.hover = 0;
     pointer.current.invalidate?.();
     setDragging(false);
     if (event.currentTarget.hasPointerCapture(event.pointerId))
@@ -83,7 +97,8 @@ export function useAsciiInteraction(
         ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
       pointer.current.y =
         -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
-      pointer.current.hover = event.pointerType === 'touch' || reduced ? 0 : 1;
+      pointer.current.hover =
+        reduced || (event.pointerType === 'touch' && !rotatable) ? 0 : 1;
       pointer.current.invalidate?.();
       if (drag.current) {
         const dx = event.clientX - drag.current.x;
@@ -97,8 +112,15 @@ export function useAsciiInteraction(
       }
     },
     onPointerDown: (event: PointerEvent<HTMLDivElement>) => {
-      if (!rotatable || event.button !== 0 || event.pointerType === 'touch')
-        return;
+      if (!rotatable || event.button !== 0 || !event.isPrimary) return;
+      if (releaseTimer.current) clearTimeout(releaseTimer.current);
+      const bounds = event.currentTarget.getBoundingClientRect();
+      pointer.current.x =
+        ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+      pointer.current.y =
+        -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
+      pointer.current.hover = reduced ? 0 : 1;
+      pointer.current.invalidate?.();
       drag.current = {
         x: event.clientX,
         y: event.clientY,
@@ -111,6 +133,7 @@ export function useAsciiInteraction(
     onPointerUp: release,
     onPointerCancel: release,
     onPointerLeave: () => {
+      if (drag.current) return;
       pointer.current.hover = 0;
       pointer.current.invalidate?.();
     },

@@ -57,3 +57,13 @@ Matrix mais presente apenas no cabeçalho do painel autenticado: intensidade pr�
 ### Interação dos controles
 
 Admin e navbar pública recebem luz branca suave que acompanha o ponteiro dentro do controle, sem mover a área clicável. Links da navbar ganham sublinhado animado, mantendo a indicação da página ativa; ícones de navegação deslizam 2px e o ícone de adicionar gira ao hover. Botões de ação da tabela invertem para branco/preto. Teclado mantém foco e realce próprios; toque usa os estados de pressão. Movimento reduzido desativa deslocamentos e transições. Nenhum desses efeitos é aplicado ao login aprovado.
+
+### Adaptação mobile — toque, navegação e login no dispositivo
+
+A hero aceita toque para dispersar e arraste lateral para girar. `touch-action: pan-y` mantém a rolagem vertical nativa; o 404 permanece estático no toque. Um toque curto mantém o impacto ativo por 180ms para o render sob demanda registrá-lo. Preferência por movimento reduzido continua respeitada.
+
+A Matrix reconhece regiões que chegam com carregamento tardio das rotas. Celular e desktop usam as mesmas regiões aprovadas: hero e apresentação da Home, cabeçalhos de A liga, Membros e Projetos. Não forçar movimento quando o sistema pede redução.
+
+Menu móvel como painel lateral: ícones Lucide, nome completo de cada destino, fundo distinto na página ativa, setas de avanço, contato no fim e fechamento acessível. Altura dinâmica e áreas seguras, mantendo rolagem interna quando necessário.
+
+Login mobile passa a ser uma interface dentro de uma moldura de HackRF One com PortaPack: conectores e antena acima, nome da liga no chassi, formulário HTML real dentro da tela, dial e controles decorativos abaixo. A foto separada é ocultada no celular; o desktop mantém a composição aprovada. Metal preto e cinza, detalhes em branco; decoração se compacta em alturas menores e não interfere com leitura, foco, toque ou acesso com teclado virtual. Controles decorativos ficam fora da árvore acessível.

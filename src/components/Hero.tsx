@@ -58,6 +58,9 @@ export function Hero() {
           <HeroScene pointer={pointer} visible={visible} reduced={reduced} />
         </Suspense>
       </div>
+      <span className="hero-touch-hint" aria-hidden="true">
+        Toque para dispersar · arraste para girar
+      </span>
       <a className="hero-scroll" href="#conheca">
         <span className="scroll-mark" aria-hidden="true">
           <span />
@@ -67,7 +70,8 @@ export function Hero() {
       <p id="symbol-instructions" className="sr-only">
         Passe o mouse para dispersar os caracteres e arraste para girar. Com o
         teclado, use as setas para girar e Home para restaurar. No celular,
-        deslize normalmente para conhecer a liga.
+        toque para dispersar, arraste para os lados para girar e deslize para
+        cima para conhecer a liga.
       </p>
     </section>
   );

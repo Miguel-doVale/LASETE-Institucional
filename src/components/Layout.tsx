@@ -2,7 +2,19 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useReducedMotion, useMediaQuery } from '@/lib/preferences';
-import { Menu, ArrowUp, Sparkles } from 'lucide-react';
+import {
+  Menu,
+  ArrowUp,
+  Sparkles,
+  ArrowRight,
+  House,
+  Shield,
+  Users,
+  FolderCode,
+  Microscope,
+  CalendarDays,
+  Mail,
+} from 'lucide-react';
 import { Instagram, Linkedin } from './SocialIcons';
 import Lenis from 'lenis';
 import gsap from 'gsap';
@@ -22,6 +34,15 @@ import {
   DialogTrigger,
 } from './ui/dialog';
 gsap.registerPlugin(ScrollTrigger);
+const mobileIcons = [
+  House,
+  Shield,
+  Users,
+  FolderCode,
+  Microscope,
+  CalendarDays,
+  Mail,
+];
 function Header() {
   usePointerHighlight('.site-header');
   const { data } = useContent();
@@ -87,17 +108,30 @@ function Header() {
                 Navegue pelas páginas da liga.
               </DialogDescription>
               <Brand />
+              <div className="mobile-menu-intro">
+                <span>Explore a liga</span>
+                <small>Conhecimento que conecta.</small>
+              </div>
               <motion.nav
                 initial={reduced ? false : { y: 8, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.18 }}
                 aria-label="Navegação móvel"
               >
-                {navItems.map((item) => (
-                  <NavLink key={item.to} to={item.to} end={item.to === '/'}>
-                    {item.label}
-                  </NavLink>
-                ))}
+                {navItems.map((item, index) => {
+                  const Icon = mobileIcons[index];
+                  return (
+                    <NavLink key={item.to} to={item.to} end={item.to === '/'}>
+                      <Icon
+                        className="mobile-menu-icon"
+                        size={20}
+                        strokeWidth={1.5}
+                      />
+                      <span>{item.label}</span>
+                      <ArrowRight className="mobile-menu-arrow" size={18} />
+                    </NavLink>
+                  );
+                })}
               </motion.nav>
               <a
                 className="mobile-contact"
