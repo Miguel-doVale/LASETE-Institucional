@@ -233,6 +233,7 @@ export function Research() {
   return (
     <>
       <PageIntro
+        ambient
         label="Pesquisas"
         title="Boas perguntas abrem caminhos."
         description="Pesquisa acadêmica e aprofundamento técnico para explorar as relações entre segurança, tecnologia e seus impactos reais."
@@ -298,6 +299,7 @@ export function Activities() {
   return (
     <>
       <PageIntro
+        ambient
         label="Atividades"
         title="Conhecimento que sai do lugar."
         description="Aulas, encontros, eventos e histórias que conectam a LASETE com a comunidade. A liga em movimento, dentro e fora da UNDB."

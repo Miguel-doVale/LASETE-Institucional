@@ -82,7 +82,7 @@ test('cubo responde a toque, gira no arraste lateral e permite rolar na vertical
     .toBeGreaterThan(40);
 });
 
-test('Matrix aparece no fundo das seis páginas internas mobile', async ({
+test('Matrix respeita o alcance de cada página interna mobile', async ({
   page,
 }) => {
   test.setTimeout(90000);
@@ -109,6 +109,31 @@ test('Matrix aparece no fundo das seis páginas internas mobile', async ({
       )
       .toBe(true);
   }
+  for (const route of ['/projetos', '/pesquisas', '/atividades']) {
+    await page.goto(route, { waitUntil: 'domcontentloaded' });
+    const intro = page.locator('[data-matrix="intro"]');
+    await expect(intro).toBeVisible();
+    await page.evaluate(() => {
+      const intro = document.querySelector<HTMLElement>(
+        '[data-matrix="intro"]',
+      )!;
+      window.scrollTo({
+        top: intro.offsetTop + intro.offsetHeight + 80,
+        behavior: 'instant',
+      });
+    });
+    await expect
+      .poll(() =>
+        page.locator('.matrix-canvas').evaluate((canvas: HTMLCanvasElement) =>
+          canvas
+            .getContext('2d')!
+            .getImageData(0, 0, canvas.width, canvas.height)
+            .data.some((value, index) => index % 4 === 3 && value > 0),
+        ),
+      )
+      .toBe(false);
+  }
+  await page.goto('/participar', { waitUntil: 'domcontentloaded' });
   await page.screenshot({ path: '.artifacts/mobile-participate-matrix.png' });
   await page.evaluate(() =>
     window.scrollTo(0, document.documentElement.scrollHeight / 2),

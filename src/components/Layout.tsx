@@ -236,9 +236,12 @@ export function Layout() {
       <Header />
       <Matrix
         route={pathname}
-        fullPage={navItems.some(
-          (item) => item.to === pathname && item.to !== '/',
-        )}
+        fullPage={['/a-liga', '/membros', '/participar'].includes(pathname)}
+        intensity={
+          ['/projetos', '/pesquisas', '/atividades'].includes(pathname)
+            ? 1.6
+            : 1
+        }
       />
       <main ref={main} id="main-content" tabIndex={-1}>
         <Outlet />

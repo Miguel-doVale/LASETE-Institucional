@@ -73,3 +73,7 @@ Login mobile passa a ser uma interface dentro de uma moldura de HackRF One com P
 A pedido do responsável, Matrix passa a ocupar o fundo completo das seis páginas internas: A liga, Membros, Projetos, Pesquisas, Atividades e Participar e contato. Intensidade e rastros próprios tornam o efeito visível desde a abertura, mantendo superfícies de conteúdo à frente. Home, login e admin mantêm seus tratamentos anteriores; a redução de movimento continua respeitada.
 
 O menu mobile substitui os ícones e setas por nomes em tipografia maior, divisórias finas e um pequeno sublinhado na página ativa. Sem numeração nem cartões por link. Mantém destinos, acessibilidade, retorno de foco e rolagem interna em telas curtas.
+
+### Alcance final da Matrix por página
+
+A liga, Membros e Participar e contato mantêm a Matrix no fundo completo. Projetos, Pesquisas e Atividades usam o efeito somente no cabeçalho, apagando após a abertura para liberar a leitura. A Home mantém sua composição anterior. Esta decisão substitui a aplicação integral anterior nas seis páginas.
