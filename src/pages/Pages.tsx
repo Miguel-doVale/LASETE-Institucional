@@ -1,3 +1,4 @@
+import { orderMembers } from '@/lib/member-order';
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search, Mail, FileText, LockKeyhole } from 'lucide-react';
@@ -113,7 +114,7 @@ export function About() {
   );
 }
 export function Members() {
-  const people = usePublished('member');
+  const people = orderMembers(usePublished('member'));
   const [group, setGroup] = useState('Diretoria');
   const [query, setQuery] = useState('');
   const filtered = people.filter(

@@ -216,3 +216,97 @@ test('login de hardware cabe no viewport e mantém erro e controles acessíveis'
     page.getByRole('button', { name: 'Entrar no painel' }),
   ).toBeInViewport();
 });
+
+test('membros têm filtros, hierarquia estável e preservam a seção ao voltar', async ({
+  page,
+}) => {
+  test.setTimeout(90000);
+  const backend = await mockSupabase(page, { signedIn: true });
+  backend.tables.members.reverse();
+  await page.goto('/admin', { waitUntil: 'domcontentloaded' });
+  await page.getByRole('button', { name: /^Membros/ }).click();
+  const rows = page.locator('.admin-table tbody tr');
+  await expect(rows).toHaveCount(17);
+  await expect(rows.nth(0)).toContainText('Luiz Felipe Cerqueira Guimarães');
+  await expect(rows.nth(1)).toContainText('Pedro Henrique Serra Brasil');
+  await page.getByRole('tab', { name: 'Diretoria', exact: true }).click();
+  await expect(rows).toHaveCount(7);
+  await page
+    .getByRole('button', {
+      name: 'Editar Pedro Henrique Serra Brasil',
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole('dialog')
+    .getByLabel('Área', { exact: true })
+    .fill('Vice-presidência atualizada');
+  await page.getByRole('button', { name: 'Salvar conteúdo' }).click();
+  await expect(page.getByRole('status')).toContainText('Alterações salvas');
+  await expect(rows.nth(0)).toContainText('Luiz Felipe');
+  await expect(rows.nth(1)).toContainText('Pedro Henrique');
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(
+    page.getByRole('heading', { name: 'Membros', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('tab', { name: 'Diretoria', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
+  await expect(rows.nth(0)).toContainText('Luiz Felipe');
+  await expect(rows.nth(1)).toContainText('Pedro Henrique');
+  await page.getByRole('tab', { name: 'Ligantes', exact: true }).click();
+  await expect(
+    page.getByRole('tab', { name: 'Ligantes', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
+  await expect(rows).toHaveCount(7);
+  await page.getByRole('textbox', { name: 'Buscar conteúdo' }).fill('Daniel');
+  await expect(rows).toHaveCount(1);
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.goto('/admin', { waitUntil: 'domcontentloaded' });
+  await expect(
+    page.getByRole('heading', { name: 'Membros', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('tab', { name: 'Ligantes', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
+  await expect(
+    page.getByRole('textbox', { name: 'Buscar conteúdo' }),
+  ).toHaveValue('Daniel');
+  await expect(rows).toHaveCount(1);
+});
+
+test('evento de sessão da mesma conta não desmonta o editor ao voltar à aba', async ({
+  page,
+}) => {
+  const backend = await mockSupabase(page, { signedIn: true });
+  await page.goto('/admin');
+  await page.getByRole('button', { name: /^Membros/ }).click();
+  await page
+    .getByRole('button', {
+      name: 'Editar Pedro Henrique Serra Brasil',
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole('dialog')
+    .getByLabel('Nome completo', { exact: true })
+    .fill('Pedro — edição em andamento');
+  const checksBefore = backend.adminChecks;
+  await page.evaluate(async () => {
+    const key = 'sb-gfbaidcldacxspesqdjy-auth-token';
+    const channel = new BroadcastChannel(key);
+    channel.postMessage({
+      event: 'SIGNED_IN',
+      session: JSON.parse(localStorage.getItem(key)!),
+    });
+    channel.close();
+  });
+  await expect(
+    page.getByRole('dialog').getByLabel('Nome completo', { exact: true }),
+  ).toHaveValue('Pedro — edição em andamento');
+  await expect.poll(() => backend.adminChecks).toBeGreaterThan(checksBefore);
+  await expect(
+    page.getByRole('dialog').getByLabel('Nome completo', { exact: true }),
+  ).toHaveValue('Pedro — edição em andamento');
+  await expect(page.getByText('Conferindo seu acesso.')).toHaveCount(0);
+});

@@ -5,7 +5,13 @@ const smooth = (start: number, end: number, value: number) => {
   return t * t * (3 - 2 * t);
 };
 // One persistent rain field. Page regions only mask its intensity; they never restart it.
-export function Matrix({ route }: { route: string }) {
+export function Matrix({
+  route,
+  intensity = 1,
+}: {
+  route: string;
+  intensity?: number;
+}) {
   const ref = useRef<HTMLCanvasElement>(null);
   const zones = useRef<HTMLElement[]>([]);
   const wake = useRef<(() => void) | null>(null);
@@ -78,7 +84,7 @@ export function Matrix({ route }: { route: string }) {
       if (document.hidden) return;
       const alphaAt = profile();
       const samples = Array.from({ length: 33 }, (_, i) =>
-        alphaAt((canvas.height * i) / 32),
+        Math.min(1, alphaAt((canvas.height * i) / 32) * intensity),
       );
       if (!samples.some((alpha) => alpha > 0.002)) {
         if (painted) {
@@ -141,7 +147,7 @@ export function Matrix({ route }: { route: string }) {
       window.removeEventListener('resize', onResize);
       document.removeEventListener('visibilitychange', visibility);
     };
-  }, [reduced]);
+  }, [reduced, intensity]);
   return reduced ? null : (
     <canvas ref={ref} className="matrix-canvas" aria-hidden="true" />
   );

@@ -10,6 +10,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { navItems, useContent } from '@/lib/content';
 import { safeUrl } from '@/lib/utils';
 import { useScrollReveal } from '@/lib/motion';
+import { usePointerHighlight } from '@/lib/pointer-highlight';
 import { Brand } from './Brand';
 import { Matrix } from './Matrix';
 import { Button } from './ui/button';
@@ -22,6 +23,7 @@ import {
 } from './ui/dialog';
 gsap.registerPlugin(ScrollTrigger);
 function Header() {
+  usePointerHighlight('.site-header');
   const { data } = useContent();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);

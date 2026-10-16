@@ -33,13 +33,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const client = supabase;
     let active = true;
     let generation = 0;
+    let verifiedUser: string | null | undefined;
     const check = async (next: Session | null) => {
       const run = ++generation;
+      const background = !!next && verifiedUser === next.user.id;
       setSession(next);
-      setAdmin(false);
+      if (!background) setAdmin(false);
       setError('');
-      setLoading(!!next);
-      if (!next) return;
+      if (!background) setLoading(!!next);
+      if (!next) {
+        verifiedUser = null;
+        return;
+      }
       try {
         const { data, error: failure } = await client
           .from('lasete_admins')
@@ -48,12 +53,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .maybeSingle();
         if (!active || generation !== run) return;
         if (failure) throw failure;
+        verifiedUser = next.user.id;
         setAdmin(!!data);
       } catch {
-        if (active && generation === run)
+        if (active && generation === run) {
+          verifiedUser = undefined;
+          setAdmin(false);
           setError(
             'Não foi possível verificar seu acesso. Confira sua conexão e tente novamente.',
           );
+        }
       } finally {
         if (active && generation === run) setLoading(false);
       }
@@ -63,8 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = client.auth.onAuthStateChange((_event, next) => {
       if (!active) return;
-      setAdmin(false);
-      setLoading(!!next);
+      if (!next || verifiedUser !== next.user.id) {
+        setAdmin(false);
+        setLoading(!!next);
+      }
       setSession(next);
       queueMicrotask(() => {
         if (active) void check(next);

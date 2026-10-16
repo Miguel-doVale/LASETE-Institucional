@@ -45,3 +45,15 @@ Login tem e-mail, senha com exibição opcional, feedback de erro e estados de v
 ### Login — composição de hardware aprovada pelo responsável
 
 Referência fornecida: dois dispositivos à esquerda e login em moldura discreta à direita. Substituir os celulares por uma composição monocromática de Flipper Zero branco e HackRF One preto personalizados com o emblema LASETE. Arte de produto ilustrativa criada para esta página; não representa inventário físico da liga. Asset local `public/images/admin-hardware.webp`. Header compacto com marca e retorno ao site; nenhum rodapé, cadastro, login social ou anúncio de aplicativo. Formulário centralizado, com senha visível opcional e os estados reais de autorização preservados. A tela inteira cabe no viewport em desktop e celular: a imagem é reduzida no celular e retirada em alturas muito pequenas para priorizar o acesso. Sem bloquear scroll globalmente: zoom e teclado virtual devem manter todos os controles alcançáveis.
+
+### Painel — membros e continuidade da sessão
+
+Abas de grupo iguais às da página pública: Diretoria, Ligantes, Orientadores e Todos. Hierarquia fixa: presidente, vice-presidente, secretaria e diretorias na ordem já adotada pela liga; depois ligantes e orientadores. Edições nunca colocam uma pessoa acima de um cargo superior. O mesmo comparador é aplicado à página pública.
+
+A seção, os filtros e a busca são refletidos na URL e preservados por conta no sessionStorage. Eventos de sessão da mesma conta revalidam acesso em segundo plano, sem desmontar o painel ou descartar o formulário aberto.
+
+Matrix mais presente apenas no cabeçalho do painel autenticado: intensidade própria, desaparecendo antes das listas e formulários. O login de hardware permanece visualmente igual ao aprovado. Movimento reduzido remove o canvas; a animação pausa em aba oculta.
+
+### Interação dos controles
+
+Admin e navbar pública recebem luz branca suave que acompanha o ponteiro dentro do controle, sem mover a área clicável. Links da navbar ganham sublinhado animado, mantendo a indicação da página ativa; ícones de navegação deslizam 2px e o ícone de adicionar gira ao hover. Botões de ação da tabela invertem para branco/preto. Teclado mantém foco e realce próprios; toque usa os estados de pressão. Movimento reduzido desativa deslocamentos e transições. Nenhum desses efeitos é aplicado ao login aprovado.

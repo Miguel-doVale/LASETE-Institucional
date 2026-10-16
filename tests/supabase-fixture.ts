@@ -45,6 +45,7 @@ export async function mockSupabase(
     failWrites: false,
     failReads: false,
     writes: 0,
+    adminChecks: 0,
   };
   const tables: Record<string, Record<string, unknown>[]> = {};
   for (const table of Object.values(mapping)) tables[table] = [];
@@ -108,8 +109,10 @@ export async function mockSupabase(
       return reply({ Key: 'test/image.webp' });
     const table = url.pathname.split('/').at(-1)!;
     const authorized = state.signedIn && state.admin;
-    if (table === 'lasete_admins')
+    if (table === 'lasete_admins') {
+      state.adminChecks++;
       return reply(authorized ? { user_id: userId } : null);
+    }
     if (!tables[table]) return reply({ message: 'Unknown table' }, 404);
     if (req.method() === 'GET') {
       if (state.failReads) return reply({ message: 'Permission denied' }, 403);
@@ -142,5 +145,5 @@ export async function mockSupabase(
     tables[table].push(row);
     return reply({ id: row.id });
   });
-  return state;
+  return Object.assign(state, { tables });
 }

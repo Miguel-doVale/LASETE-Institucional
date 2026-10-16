@@ -4261,3 +4261,151 @@ p {
     max-width: 380px;
   }
 }
+
+.admin-member-tabs {
+  margin-bottom: 24px;
+}
+.admin-member-tabs .tabs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(16px, 2vw, 28px);
+}
+.admin-member-tabs .tabs-trigger {
+  min-height: 44px;
+  padding-inline: 10px;
+  font-size: 13px;
+}
+.admin-row-actions button {
+  transition:
+    background 160ms ease,
+    color 160ms ease;
+}
+.admin-row-actions button:active {
+  transform: translateY(1px);
+}
+
+/* Matrix belongs only to the authenticated workspace heading. */
+.admin-shell {
+  position: relative;
+  isolation: isolate;
+}
+.admin-ambient {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 340px;
+  pointer-events: none;
+}
+.admin-shell > .matrix-canvas {
+  opacity: 0.9;
+  mask-image: linear-gradient(to bottom, #000 150px, transparent 360px);
+}
+.admin-main {
+  position: relative;
+  z-index: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-row-actions button:active {
+    transform: none;
+  }
+}
+
+/* Pointer light and a traveling underline share the monochrome identity. */
+.admin-shell button,
+.editor-dialog .button,
+.site-header .desktop-nav > a,
+.site-header .ai-nav {
+  position: relative;
+  isolation: isolate;
+}
+.admin-shell button::before,
+.editor-dialog .button::before,
+.site-header .desktop-nav > a::before,
+.site-header .ai-nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    140px circle at var(--pointer-x, 50%) var(--pointer-y, 50%),
+    rgb(255 255 255 / 0.2),
+    transparent 72%
+  );
+  transition: opacity 180ms ease-out;
+}
+.site-header .ai-nav::before,
+.admin-shell .button-primary::before {
+  background: radial-gradient(
+    100px circle at var(--pointer-x, 50%) var(--pointer-y, 50%),
+    rgb(0 0 0 / 0.15),
+    transparent 72%
+  );
+}
+.site-header .desktop-nav > a::after {
+  content: '';
+  position: absolute;
+  inset: auto 14px 3px;
+  height: 1px;
+  background: #f5f5f5;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 180ms ease-out;
+  pointer-events: none;
+}
+.site-header .desktop-nav > a:is(.active, :focus-visible)::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+.admin-sidebar > nav > button > svg,
+.admin-page-heading > .button > svg,
+.site-header .ai-nav > svg {
+  transition: transform 180ms ease-out;
+}
+.admin-shell button:focus-visible::before,
+.editor-dialog .button:focus-visible::before,
+.site-header .desktop-nav > a:focus-visible::before {
+  opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .admin-shell button:not(:disabled):hover::before,
+  .editor-dialog .button:not(:disabled):hover::before,
+  .site-header .desktop-nav > a:hover::before,
+  .site-header .ai-nav:hover::before {
+    opacity: 1;
+  }
+  .site-header .desktop-nav > a:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+  .admin-sidebar > nav > button:hover > svg {
+    transform: translateX(2px);
+  }
+  .admin-page-heading > .button:hover > svg {
+    transform: rotate(90deg);
+  }
+  .site-header .ai-nav:hover > svg {
+    transform: rotate(-12deg);
+  }
+  .admin-row-actions button:not(:disabled):hover {
+    background: #eee;
+    color: #000;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell button::before,
+  .editor-dialog .button::before,
+  .site-header .desktop-nav > a::before,
+  .site-header .ai-nav::before,
+  .site-header .desktop-nav > a::after,
+  .admin-sidebar > nav > button > svg,
+  .admin-page-heading > .button > svg,
+  .site-header .ai-nav > svg {
+    transition: none;
+  }
+  .admin-sidebar > nav > button:hover > svg,
+  .admin-page-heading > .button:hover > svg,
+  .site-header .ai-nav:hover > svg {
+    transform: none;
+  }
+}

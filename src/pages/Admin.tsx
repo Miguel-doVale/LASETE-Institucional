@@ -1,5 +1,8 @@
 import { useEffect, useState, type FormEvent, type ChangeEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { usePointerHighlight } from '@/lib/pointer-highlight';
+import { memberGroups, orderMembers } from '@/lib/member-order';
 import {
   Plus,
   Pencil,
@@ -23,6 +26,7 @@ import {
   ImagePlus,
 } from 'lucide-react';
 import AdminAccess from './AdminAccess';
+import { Matrix } from '@/components/Matrix';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { Brand } from '@/components/Brand';
@@ -98,13 +102,51 @@ export default function Admin() {
   );
 }
 function AdminPanel() {
+  usePointerHighlight('.admin-shell, .editor-dialog');
   const { data, save, loading, loadError, reload } = useContent();
   const { session } = useAuth();
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [module, setModule] = useState<Module>('project');
-  const [query, setQuery] = useState('');
+  const [params, setParams] = useSearchParams();
+  const storageKey = `lasete-admin-view:${session?.user.id}`;
+  const [view, setView] = useState(() => {
+    let initial = params;
+    if (!params.has('section')) {
+      try {
+        initial = new URLSearchParams(
+          sessionStorage.getItem(storageKey) || params.toString(),
+        );
+      } catch {}
+    }
+    return {
+      section: initial.get('section') || 'project',
+      q: initial.get('q') || '',
+      status: initial.get('status') || 'all',
+      group: initial.get('group') || 'Todos',
+    };
+  });
+  const module: Module = [
+    ...modules.map((m) => m.type),
+    'selection',
+    'contact',
+  ].includes(view.section)
+    ? (view.section as Module)
+    : 'project';
+  const query = view.q;
+  const statusFilter = view.status;
+  const memberGroup = view.group;
+  const updateView = (patch: Partial<typeof view>) =>
+    setView((previous) => ({ ...previous, ...patch }));
+  const setQuery = (q: string) => updateView({ q });
+  const setStatusFilter = (status: string) => updateView({ status });
+  useEffect(() => {
+    const next = new URLSearchParams({ ...view, section: module });
+    try {
+      sessionStorage.setItem(storageKey, next.toString());
+    } catch {}
+    if (params.toString() !== next.toString())
+      setParams(next, { replace: true });
+  }, [storageKey, view, module, params, setParams]);
   const [editing, setEditing] = useState<ContentItem | null>(null);
   const [deleting, setDeleting] = useState<ContentItem | null>(null);
   const [settings, setSettings] = useState<Settings>(data.settings);
@@ -115,19 +157,21 @@ function AdminPanel() {
   }, []);
   useEffect(() => setSettings(data.settings), [data.settings]);
   const current = modules.find((m) => m.type === module);
-  const list = data.items.filter(
+  const matches = data.items.filter(
     (i) =>
       i.type === module &&
+      (module !== 'member' ||
+        memberGroup === 'Todos' ||
+        i.group === memberGroup) &&
       (statusFilter === 'all' ||
         (statusFilter === 'published' ? i.published : !i.published)) &&
       `${i.title} ${i.subtitle} ${i.category}`
         .toLocaleLowerCase()
         .includes(query.toLocaleLowerCase()),
   );
+  const list = module === 'member' ? orderMembers(matches) : matches;
   const navigate = (m: Module) => {
-    setModule(m);
-    setQuery('');
-    setStatusFilter('all');
+    updateView({ section: m, q: '', status: 'all', group: 'Todos' });
     setError('');
     setNotice('');
   };
@@ -265,6 +309,8 @@ function AdminPanel() {
   };
   return (
     <div className="admin-shell">
+      <div className="admin-ambient" data-matrix="hero" aria-hidden="true" />
+      <Matrix route="/admin/workspace" intensity={2} />
       <aside className="admin-sidebar">
         <Link to="/" aria-label="Voltar à Home">
           <Brand />
@@ -373,6 +419,21 @@ function AdminPanel() {
                 ? 'As pessoas que fazem a liga acontecer.'
                 : `Organize ${current.label.toLocaleLowerCase()} e escolha o que aparece no site.`}
             </p>
+            {module === 'member' && (
+              <Tabs
+                value={memberGroup}
+                onValueChange={(group) => updateView({ group })}
+                className="admin-member-tabs"
+              >
+                <TabsList aria-label="Filtrar membros por grupo">
+                  {memberGroups.map((group) => (
+                    <TabsTrigger key={group} value={group}>
+                      {group}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            )}
             <div className="admin-list-toolbar">
               <div
                 className="admin-status-filter"
