@@ -82,13 +82,20 @@ test('cubo responde a toque, gira no arraste lateral e permite rolar na vertical
     .toBeGreaterThan(40);
 });
 
-test('Matrix aparece nos cabeçalhos mobile, inclusive ao abrir uma rota diretamente', async ({
+test('Matrix aparece no fundo das seis páginas internas mobile', async ({
   page,
 }) => {
   test.setTimeout(90000);
-  for (const route of ['/a-liga', '/membros', '/projetos']) {
+  for (const route of [
+    '/a-liga',
+    '/membros',
+    '/projetos',
+    '/pesquisas',
+    '/atividades',
+    '/participar',
+  ]) {
     await page.goto(route, { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('[data-matrix="intro"]')).toBeVisible();
+    await expect(page.locator('h1')).toBeVisible();
     await expect
       .poll(async () =>
         page.locator('.matrix-canvas').evaluate((canvas: HTMLCanvasElement) => {
@@ -102,6 +109,20 @@ test('Matrix aparece nos cabeçalhos mobile, inclusive ao abrir uma rota diretam
       )
       .toBe(true);
   }
+  await page.screenshot({ path: '.artifacts/mobile-participate-matrix.png' });
+  await page.evaluate(() =>
+    window.scrollTo(0, document.documentElement.scrollHeight / 2),
+  );
+  await expect
+    .poll(async () =>
+      page.locator('.matrix-canvas').evaluate((canvas: HTMLCanvasElement) =>
+        canvas
+          .getContext('2d')!
+          .getImageData(0, 0, canvas.width, canvas.height)
+          .data.some((value, index) => index % 4 === 3 && value > 0),
+      ),
+    )
+    .toBe(true);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(page.locator('.matrix-canvas')).toHaveCount(0);
 });

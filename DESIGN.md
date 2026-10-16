@@ -67,3 +67,9 @@ A Matrix reconhece regiões que chegam com carregamento tardio das rotas. Celula
 Menu móvel como painel lateral: ícones Lucide, nome completo de cada destino, fundo distinto na página ativa, setas de avanço, contato no fim e fechamento acessível. Altura dinâmica e áreas seguras, mantendo rolagem interna quando necessário.
 
 Login mobile passa a ser uma interface dentro de uma moldura de HackRF One com PortaPack: conectores e antena acima, nome da liga no chassi, formulário HTML real dentro da tela, dial e controles decorativos abaixo. A foto separada é ocultada no celular; o desktop mantém a composição aprovada. Metal preto e cinza, detalhes em branco; decoração se compacta em alturas menores e não interfere com leitura, foco, toque ou acesso com teclado virtual. Controles decorativos ficam fora da árvore acessível.
+
+### Revisão das páginas internas e do menu móvel
+
+A pedido do responsável, Matrix passa a ocupar o fundo completo das seis páginas internas: A liga, Membros, Projetos, Pesquisas, Atividades e Participar e contato. Intensidade e rastros próprios tornam o efeito visível desde a abertura, mantendo superfícies de conteúdo à frente. Home, login e admin mantêm seus tratamentos anteriores; a redução de movimento continua respeitada.
+
+O menu mobile substitui os ícones e setas por nomes em tipografia maior, divisórias finas e um pequeno sublinhado na página ativa. Sem numeração nem cartões por link. Mantém destinos, acessibilidade, retorno de foco e rolagem interna em telas curtas.

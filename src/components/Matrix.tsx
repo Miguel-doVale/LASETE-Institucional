@@ -8,9 +8,11 @@ const smooth = (start: number, end: number, value: number) => {
 export function Matrix({
   route,
   intensity = 1,
+  fullPage = false,
 }: {
   route: string;
   intensity?: number;
+  fullPage?: boolean;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const zones = useRef<HTMLElement[]>([]);
@@ -65,6 +67,19 @@ export function Matrix({
       );
       rain.fillStyle = '#000000';
       rain.fillRect(0, 0, width, height);
+      if (fullPage) {
+        rain.font = '13px monospace';
+        drops.forEach((y, i) => {
+          for (let tail = 0; tail < 8; tail++) {
+            rain.fillStyle = `rgba(220,220,220,${0.48 * (1 - tail / 8)})`;
+            rain.fillText(
+              Math.random() > 0.5 ? '1' : '0',
+              i * 30,
+              (y - tail) * 18,
+            );
+          }
+        });
+      }
       painted = false;
     };
     const profile = () => {
@@ -78,7 +93,7 @@ export function Matrix({
         .filter((zone) => zone.dataset.matrix === 'intro')
         .map((zone) => zone.getBoundingClientRect());
       return (y: number) => {
-        let alpha = 0;
+        let alpha = fullPage ? 0.72 * smooth(60, 120, y) : 0;
         if (hero) {
           const bottom = continuation?.bottom ?? hero.bottom;
           if (y >= hero.top && y <= bottom) {
@@ -118,10 +133,15 @@ export function Matrix({
       last = time;
       rain.fillStyle = 'rgba(0,0,0,.12)';
       rain.fillRect(0, 0, field.width, field.height);
-      rain.font = '12px monospace';
+      rain.font = fullPage ? '13px monospace' : '12px monospace';
       drops.forEach((y, i) => {
-        rain.fillStyle =
-          i % 6 === 0 ? 'rgba(230,230,230,.38)' : 'rgba(170,170,170,.24)';
+        rain.fillStyle = fullPage
+          ? i % 6 === 0
+            ? 'rgba(240,240,240,.7)'
+            : 'rgba(195,195,195,.46)'
+          : i % 6 === 0
+            ? 'rgba(230,230,230,.38)'
+            : 'rgba(170,170,170,.24)';
         rain.fillText(Math.random() > 0.5 ? '1' : '0', i * 30, y * 18);
         drops[i] =
           y * 18 > field.height && Math.random() > 0.975
@@ -167,7 +187,7 @@ export function Matrix({
       window.removeEventListener('resize', onResize);
       document.removeEventListener('visibilitychange', visibility);
     };
-  }, [reduced, intensity]);
+  }, [reduced, intensity, fullPage]);
   return reduced ? null : (
     <canvas ref={ref} className="matrix-canvas" aria-hidden="true" />
   );

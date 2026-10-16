@@ -4802,3 +4802,90 @@ p {
     min-height: 48px;
   }
 }
+
+/* Mobile navigation led by type, without pictograms or card-shaped rows. */
+@media (max-width: 1170px) {
+  .mobile-navigation.dialog-content {
+    background: #050505;
+    padding-inline: 28px;
+  }
+  .mobile-navigation > .brand {
+    margin-bottom: 40px;
+  }
+  .mobile-menu-intro {
+    margin-bottom: 16px;
+  }
+  .mobile-menu-intro > span {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: #a3a3a3;
+  }
+  .mobile-navigation nav {
+    gap: 0;
+  }
+  .mobile-navigation nav > a {
+    position: relative;
+    min-height: 65px;
+    border-radius: 0;
+    border-bottom: 1px solid #242424;
+    padding: 14px 0;
+    font-size: clamp(24px, 6.4vw, 29px);
+    font-weight: 450;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    color: #a3a3a3;
+    transition: color 160ms ease;
+  }
+  .mobile-navigation nav > a.active {
+    background: transparent;
+    color: #fff;
+  }
+  .mobile-navigation nav > a::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 32px;
+    height: 2px;
+    background: #fff;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 160ms ease;
+  }
+  .mobile-navigation nav > a.active::after {
+    transform: scaleX(1);
+  }
+  .mobile-navigation nav > a:active {
+    color: #fff;
+    background: transparent;
+  }
+  .mobile-navigation nav > a > span {
+    transition: transform 160ms ease;
+  }
+  .mobile-navigation nav > a:active > span {
+    transform: translateX(4px);
+  }
+  .mobile-navigation > .mobile-contact {
+    padding-top: 28px;
+  }
+}
+@media (max-height: 740px) and (max-width: 1170px) {
+  .mobile-navigation > .brand {
+    margin-bottom: 28px;
+  }
+  .mobile-navigation nav > a {
+    min-height: 54px;
+    padding-block: 12px;
+    font-size: 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobile-navigation nav > a > span,
+  .mobile-navigation nav > a::after {
+    transition: none;
+  }
+  .mobile-navigation nav > a:active > span {
+    transform: none;
+  }
+}

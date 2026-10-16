@@ -316,7 +316,7 @@ test('dispersão da hero fica perto do mouse e a forma se recompõe ao sair', as
     }),
   ).toBeGreaterThan(0.8);
 });
-test('a mesma Matrix segue da hero à apresentação e desaparece nas áreas de leitura', async ({
+test('Matrix preserva a Home e continua no fundo das páginas internas', async ({
   page,
 }) => {
   await page.goto('/');
@@ -335,9 +335,9 @@ test('a mesma Matrix segue da hero à apresentação e desaparece nas áreas de 
   await page.mouse.wheel(0, 2900);
   await expect.poll(() => matrixPaint(page)).toBe(0);
   await page.goto('/atividades');
-  await expect.poll(() => matrixPaint(page)).toBe(0);
+  await expect.poll(() => matrixPaint(page)).toBeGreaterThan(0);
   await page.goto('/participar');
-  await expect.poll(() => matrixPaint(page)).toBe(0);
+  await expect.poll(() => matrixPaint(page)).toBeGreaterThan(0);
 });
 test('edição preserva data de origem e o destino da IA em todos os acessos', async ({
   page,
