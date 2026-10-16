@@ -4409,3 +4409,19 @@ p {
     transform: none;
   }
 }
+
+.admin-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.admin-topbar-actions .admin-signout {
+  margin: 0;
+  border: 1px solid #3b3b3b;
+  border-radius: 6px;
+  gap: 8px;
+}
+@media (max-width: 640px) {
+  .admin-topbar > .meta { display: none; }
+  .admin-topbar-actions { width: 100%; justify-content: space-between; }
+}

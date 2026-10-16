@@ -358,17 +358,23 @@ function AdminPanel() {
               <small>{session?.user.email}</small>
             </div>
           </div>
-          <button className="admin-signout" onClick={logout} disabled={busy}>
-            <LogOut size={16} /> Sair da conta
-          </button>
         </div>
       </aside>
       <main className="admin-main">
         <div className="admin-topbar">
           <span className="meta">LASETE / Conteúdo</span>
-          <Link to="/" className="admin-site-link">
-            Visualizar site <ArrowUpRight size={15} />
-          </Link>
+          <div className="admin-topbar-actions">
+            <Link to="/" className="admin-site-link">
+              Visualizar site <ArrowUpRight size={15} />
+            </Link>
+            <button
+              className="admin-signout"
+              onClick={logout}
+              disabled={busy || uploading}
+            >
+              <LogOut size={16} /> Sair da conta
+            </button>
+          </div>
         </div>
         <div className="admin-workspace-label">
           <ShieldCheck size={16} /> Espaço da diretoria
