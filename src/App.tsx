@@ -6,24 +6,12 @@ import { Layout } from './components/Layout';
 import NotFound from './pages/NotFound';
 const Home = lazy(() => import('./pages/Home'));
 const Admin = lazy(() => import('./pages/Admin'));
-const About = lazy(() =>
-  import('./pages/Pages').then((m) => ({ default: m.About })),
-);
-const Members = lazy(() =>
-  import('./pages/Pages').then((m) => ({ default: m.Members })),
-);
-const Projects = lazy(() =>
-  import('./pages/Pages').then((m) => ({ default: m.Projects })),
-);
-const Research = lazy(() =>
-  import('./pages/Pages').then((m) => ({ default: m.Research })),
-);
-const Activities = lazy(() =>
-  import('./pages/Pages').then((m) => ({ default: m.Activities })),
-);
-const Participate = lazy(() =>
-  import('./pages/Pages').then((m) => ({ default: m.Participate })),
-);
+const Liga = lazy(() => import('./pages/Liga'));
+const Membros = lazy(() => import('./pages/Membros'));
+const Projetos = lazy(() => import('./pages/Projetos'));
+const Pesquisas = lazy(() => import('./pages/Pesquisas'));
+const Atividades = lazy(() => import('./pages/Atividades'));
+const Participar = lazy(() => import('./pages/Participar'));
 export default function App() {
   return (
     <BrowserRouter>
@@ -40,12 +28,12 @@ export default function App() {
               <Route path="/admin" element={<Admin />} />
               <Route element={<Layout />}>
                 <Route index element={<Home />} />
-                <Route path="a-liga" element={<About />} />
-                <Route path="membros" element={<Members />} />
-                <Route path="projetos" element={<Projects />} />
-                <Route path="pesquisas" element={<Research />} />
-                <Route path="atividades" element={<Activities />} />
-                <Route path="participar" element={<Participate />} />
+                <Route path="a-liga" element={<Liga />} />
+                <Route path="membros" element={<Membros />} />
+                <Route path="projetos" element={<Projetos />} />
+                <Route path="pesquisas" element={<Pesquisas />} />
+                <Route path="atividades" element={<Atividades />} />
+                <Route path="participar" element={<Participar />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>

@@ -1,6 +1,8 @@
 # LASETE Institucional
 
-Prévia do frontend em React, TypeScript, Vite e Tailwind. Sete páginas públicas; hero WebGL/ASCII; painel editorial local em `/admin`.
+Prévia do frontend em React, TypeScript, Vite e Tailwind. Sete páginas públicas; hero WebGL/ASCII; painel editorial em `/admin`.
+
+Para localizar rapidamente onde fazer cada manutenção, consulte o [Guia prático de manutenção](docs/GUIA-DE-MANUTENCAO.md).
 
 ## Desenvolvimento
 

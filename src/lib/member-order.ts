@@ -1,9 +1,9 @@
 import type { ContentItem } from './content';
 export const memberGroups = [
+  'Todos',
   'Diretoria',
   'Ligantes',
   'Orientadores',
-  'Todos',
 ] as const;
 const normalize = (value: string) =>
   value
