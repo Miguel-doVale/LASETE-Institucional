@@ -233,18 +233,40 @@ test('membros têm filtros, hierarquia estável e preservam a seção ao voltar'
   await expect(rows).toHaveCount(7);
   await page
     .getByRole('button', {
-      name: 'Editar Pedro Henrique Serra Brasil',
+      name: 'Editar Luiza Belfort Conceição dos Santos',
       exact: true,
     })
     .click();
-  await page
-    .getByRole('dialog')
-    .getByLabel('Área', { exact: true })
-    .fill('Vice-presidência atualizada');
+  const memberDialog = page.getByRole('dialog');
+  await memberDialog
+    .getByRole('combobox', { name: /^Área/ })
+    .selectOption('Financeiro');
+  await memberDialog
+    .getByRole('combobox', { name: /^Forma gramatical do cargo/ })
+    .selectOption('masculine');
+  await expect(memberDialog.locator('.member-role-preview')).toContainText(
+    'Diretor Financeiro',
+  );
+  await memberDialog
+    .getByRole('combobox', { name: /^Forma gramatical do cargo/ })
+    .selectOption('feminine');
+  await expect(memberDialog.locator('.member-role-preview')).toContainText(
+    'Diretora Financeira',
+  );
   await page.getByRole('button', { name: 'Salvar conteúdo' }).click();
   await expect(page.getByRole('status')).toContainText('Alterações salvas');
   await expect(rows.nth(0)).toContainText('Luiz Felipe');
   await expect(rows.nth(1)).toContainText('Pedro Henrique');
+  await page
+    .getByRole('button', {
+      name: 'Editar Luiza Belfort Conceição dos Santos',
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole('dialog').getByRole('combobox', { name: /^Área/ }),
+  ).toHaveValue('Financeiro');
+  await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
   await page.reload({ waitUntil: 'domcontentloaded' });
   await expect(
     page.getByRole('heading', { name: 'Membros', exact: true }),
@@ -273,6 +295,39 @@ test('membros têm filtros, hierarquia estável e preservam a seção ao voltar'
     page.getByRole('textbox', { name: 'Buscar conteúdo' }),
   ).toHaveValue('Daniel');
   await expect(rows).toHaveCount(1);
+});
+
+test('autoria de pesquisa é salva e aparece no cartão público', async ({
+  page,
+}) => {
+  const backend = await mockSupabase(page, { signedIn: true });
+  await page.goto('/admin');
+  await page.getByRole('button', { name: /^Pesquisas/ }).click();
+  await page
+    .getByRole('button', { name: 'Adicionar pesquisa', exact: true })
+    .click();
+  const researchDialog = page.getByRole('dialog');
+  await researchDialog
+    .getByRole('textbox', { name: /^Autor\(es\)/ })
+    .fill('Equipe de Pesquisa LASETE');
+  await researchDialog
+    .getByLabel('Título', { exact: true })
+    .fill('Pesquisa com autoria');
+  await researchDialog.getByLabel('Publicado no site').check();
+  await page.getByRole('button', { name: 'Salvar conteúdo' }).click();
+  await expect(page.getByRole('status')).toContainText('Alterações salvas');
+  expect(
+    backend.tables.researches.some(
+      (item) =>
+        item.title === 'Pesquisa com autoria' &&
+        item.author === 'Equipe de Pesquisa LASETE',
+    ),
+  ).toBe(true);
+  await page.goto('/pesquisas');
+  const researchCard = page
+    .locator('.content-card')
+    .filter({ hasText: 'Pesquisa com autoria' });
+  await expect(researchCard).toContainText('Por Equipe de Pesquisa LASETE');
 });
 
 test('evento de sessão da mesma conta não desmonta o editor ao voltar à aba', async ({

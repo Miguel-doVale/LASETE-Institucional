@@ -10,6 +10,8 @@ Este guia é um mapa rápido do código atual. Para atualizar conteúdo que já 
 | Ordem dos cartões de pessoas por cargo                                    | `src/lib/member-order.ts`, na função `orderMembers`                                       |
 | Filtro que aparece selecionado ao abrir Membros                           | `src/pages/Membros.tsx`, em `useState('Diretoria')` dentro de `Membros`                   |
 | Dados reais de pessoas, projetos, pesquisas, atividades, notícias e mídia | Painel `/admin`                                                                           |
+| Campo de autoria das pesquisas no Admin e nos cartões públicos            | `src/pages/Admin.tsx`, `src/lib/content-api.ts` e `src/components/Shared.tsx`             |
+| Opções de cargo, forma gramatical e área dos membros                      | `src/pages/Admin.tsx`; opções e regras do formulário ficam junto ao editor                |
 | Texto fixo de uma página                                                  | `src/pages/Home.tsx` ou no arquivo da página correspondente                               |
 | Ordem e nomes da navegação principal                                      | `src/lib/content.tsx`, na lista `navItems`                                                |
 | Endereços das páginas                                                     | `src/App.tsx`                                                                             |
@@ -113,6 +115,25 @@ O conteúdo que a diretoria atualiza fica no Supabase. Para mudanças normais, u
 `src/lib/content.tsx` define os tipos de conteúdo, os dados iniciais de referência e o estado compartilhado usado pelas páginas. `content-api.ts` traduz os registros do banco para o formato usado no React. `supabase.ts` cria o cliente quando as variáveis de ambiente estão presentes. O SQL inicial e as políticas de acesso ficam em `docs/supabase-setup.sql`.
 
 O login é feito pelo Supabase Auth. Uma conta só abre o painel se estiver autorizada em `lasete_admins`; as políticas RLS do banco também limitam quem pode ler rascunhos, editar conteúdo e enviar imagens. Não há cadastro público de administradores.
+
+### Adicionar ou editar uma pesquisa
+
+No painel, abra **Pesquisas → Adicionar pesquisa**. O campo **Autor(es)** fica antes do título e é opcional para permitir registros cuja autoria ainda não foi informada. Quando preenchido, aparece como “Por [autor]” no cartão público. Para alterar sua posição ou o texto do campo, procure o formulário em **src/pages/Admin.tsx**; o tipo de conteúdo está em **src/lib/content.tsx**, e o mapeamento entre banco e interface está em **src/lib/content-api.ts**.
+
+A tabela researches precisa ter a coluna author. O SQL de instalação já inclui essa alteração, mas, como o banco existente foi criado anteriormente, execute uma vez no SQL Editor do Supabase:
+
+    alter table public.researches
+      add column if not exists author text not null default '';
+
+O if not exists permite rodar o comando novamente sem duplicar a coluna. Registros já existentes ficam com autoria vazia; podem ser atualizados pelo painel.
+
+### Adicionar ou editar um membro
+
+Em **Membros → Adicionar membro**, informe o nome e escolha o **Cargo**. As opções são presidente, vice-presidente, secretário-geral, diretor(a) de área, ligante e professor(a) orientador(a). O campo **Área** oferece Pesquisa, Ensino, Extensão, Comunicação e Financeiro para cargos de área; presidência, vice-presidência, secretaria e orientação recebem sua área correspondente automaticamente.
+
+Para cargos com flexão de gênero, escolha a **Forma gramatical do cargo**. Ela serve apenas para montar o texto publicado; o sistema não salva gênero como dado separado. A prévia mostra o cargo final, por exemplo, “Diretora de Comunicação”. A categoria do filtro (**Diretoria**, **Ligantes** ou **Orientadores**) é definida automaticamente pelo cargo escolhido.
+
+As opções e a composição do texto ficam no início de **src/pages/Admin.tsx**, nas funções **memberAreaOptions**, **memberRole** e **memberGroupForCargo**. Para incluir uma nova área ou cargo, atualize essas opções e a regra de composição; não é necessário criar colunas novas no Supabase. A ordenação da diretoria continua em **src/lib/member-order.ts**.
 
 ### Imagens
 

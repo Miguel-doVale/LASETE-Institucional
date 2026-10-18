@@ -27,6 +27,7 @@ create table if not exists public.members (
 create table if not exists public.researches (
   id text primary key,
   title text not null,
+  author text not null default '',
   subtitle text not null default '',
   description text not null default '',
   image text not null default '',
@@ -37,6 +38,8 @@ create table if not exists public.researches (
   post_crop boolean not null default false,
   sort_order integer not null default 0
 );
+alter table public.researches
+  add column if not exists author text not null default '';
 
 create table if not exists public.activities (
   id text primary key,

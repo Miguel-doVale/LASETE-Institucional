@@ -117,6 +117,9 @@ export function ContentCard({ item }: { item: ContentItem }) {
           {item.date &&
             ` · ${new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }).format(new Date(item.date + 'T12:00:00'))}`}
         </span>
+        {item.author && (
+          <span className="content-author">Por {item.author}</span>
+        )}
         <h3>{item.title}</h3>
         <p>{item.subtitle}</p>
         <button

@@ -562,6 +562,13 @@ p {
 .card-copy .meta {
   display: block;
 }
+.content-author {
+  display: block;
+  margin-top: 8px;
+  color: #a3a3a3;
+  font-size: 12px;
+  line-height: 1.5;
+}
 .card-copy h3 {
   font-size: 21px;
   line-height: 1.35;
@@ -2202,6 +2209,24 @@ p {
   flex-direction: column;
   gap: 21px;
   margin-top: 25px;
+}
+.member-role-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 14px 16px;
+  border: 1px solid #292929;
+  border-radius: 6px;
+  background: #0c0c0c;
+}
+.member-role-preview > span,
+.member-role-preview > small {
+  color: #a3a3a3;
+  font-size: 11px;
+}
+.member-role-preview > strong {
+  font-size: 16px;
+  font-weight: 600;
 }
 .image-upload-field {
   display: flex;

@@ -54,6 +54,7 @@ export async function fetchContent(signal: AbortSignal): Promise<SiteData> {
           title: row.title,
           subtitle: row.subtitle,
           description: row.description,
+          author: row.author ?? undefined,
           image: row.image,
           url: row.id === 'lasete-ai' ? settings.aiUrl : row.url,
           category: row.category,
@@ -88,7 +89,12 @@ export function itemRow(item: ContentItem, sortOrder: number): ContentRow {
           area: item.area ?? null,
           group: item.group ?? null,
         }
-      : { date: item.date ?? null }),
+      : item.type === 'research'
+        ? {
+            author: item.author?.trim() ?? '',
+            date: item.date ?? null,
+          }
+        : { date: item.date ?? null }),
   };
 }
 export function settingsRow(s: Settings) {

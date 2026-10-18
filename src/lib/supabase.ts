@@ -11,6 +11,7 @@ export type ContentRow = {
   published: boolean;
   post_crop: boolean;
   sort_order: number;
+  author?: string | null;
   role?: string | null;
   area?: string | null;
   group?: string | null;

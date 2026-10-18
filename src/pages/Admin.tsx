@@ -73,6 +73,116 @@ const modules = [
     icon: Megaphone,
   },
 ] as const;
+const departmentAreas = [
+  'Pesquisa',
+  'Ensino',
+  'Extensão',
+  'Comunicação',
+  'Financeiro',
+];
+type MemberCargo =
+  | 'president'
+  | 'vice-president'
+  | 'secretary-general'
+  | 'director'
+  | 'member'
+  | 'advisor';
+type MemberGender = 'masculine' | 'feminine';
+type MemberEditorValues = {
+  cargo: MemberCargo;
+  gender: MemberGender;
+  area: string;
+};
+const normalizeMemberText = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+function memberAreaOptions(cargo: MemberCargo) {
+  if (cargo === 'director' || cargo === 'member') return departmentAreas;
+  if (cargo === 'president') return ['Presidência'];
+  if (cargo === 'vice-president') return ['Vice-presidência'];
+  if (cargo === 'secretary-general') return ['Secretaria'];
+  return ['Orientação'];
+}
+function memberEditorValues(item: ContentItem): MemberEditorValues {
+  const role = normalizeMemberText(item.role || item.subtitle);
+  let cargo: MemberCargo = 'member';
+  if (role.startsWith('vice-presidente') || role.startsWith('vice-presidenta'))
+    cargo = 'vice-president';
+  else if (role.startsWith('presidente') || role.startsWith('presidenta'))
+    cargo = 'president';
+  else if (role.startsWith('secretario') || role.startsWith('secretaria'))
+    cargo = 'secretary-general';
+  else if (role.startsWith('diretor') || role.startsWith('diretora'))
+    cargo = 'director';
+  else if (
+    role.includes('orientador') ||
+    role.includes('orientadora') ||
+    role.includes('professor') ||
+    role.includes('professora')
+  )
+    cargo = 'advisor';
+  else if (item.group === 'Diretoria') cargo = 'director';
+  else if (item.group === 'Orientadores') cargo = 'advisor';
+
+  const gender: MemberGender =
+    role.startsWith('vice-presidenta') ||
+    role.startsWith('presidenta') ||
+    role.startsWith('secretaria') ||
+    role.startsWith('diretora') ||
+    role.startsWith('professora') ||
+    role.includes('orientadora')
+      ? 'feminine'
+      : 'masculine';
+  const options = memberAreaOptions(cargo);
+  const storedArea = item.area || item.category;
+  return {
+    cargo,
+    gender,
+    area: options.includes(storedArea) ? storedArea : options[0],
+  };
+}
+function memberRole(values: MemberEditorValues) {
+  const feminine = values.gender === 'feminine';
+  if (values.cargo === 'president')
+    return feminine ? 'Presidenta' : 'Presidente';
+  if (values.cargo === 'vice-president')
+    return feminine ? 'Vice-presidenta' : 'Vice-presidente';
+  if (values.cargo === 'secretary-general')
+    return feminine ? 'Secretária-geral' : 'Secretário-geral';
+  if (values.cargo === 'director') {
+    if (values.area === 'Financeiro')
+      return feminine ? 'Diretora Financeira' : 'Diretor Financeiro';
+    return (feminine ? 'Diretora de ' : 'Diretor de ') + values.area;
+  }
+  if (values.cargo === 'advisor')
+    return feminine ? 'Professora orientadora' : 'Professor orientador';
+  return 'Ligante';
+}
+function memberGroupForCargo(cargo: MemberCargo) {
+  if (cargo === 'member') return 'Ligantes';
+  if (cargo === 'advisor') return 'Orientadores';
+  return 'Diretoria';
+}
+function withMemberProfile(
+  item: ContentItem,
+  patch: Partial<MemberEditorValues> = {},
+): ContentItem {
+  const values = { ...memberEditorValues(item), ...patch };
+  const options = memberAreaOptions(values.cargo);
+  if (!options.includes(values.area)) values.area = options[0];
+  const role = memberRole(values);
+  return {
+    ...item,
+    role,
+    subtitle: role,
+    area: values.area,
+    category: values.area,
+    group: memberGroupForCargo(values.cargo),
+  };
+}
 type Module = ContentType | 'selection' | 'contact';
 function Field({
   label,
@@ -148,6 +258,13 @@ function AdminPanel() {
       setParams(next, { replace: true });
   }, [storageKey, view, module, params, setParams]);
   const [editing, setEditing] = useState<ContentItem | null>(null);
+  const memberForm =
+    editing?.type === 'member' ? memberEditorValues(editing) : null;
+  const updateMemberEditing = (patch: Partial<MemberEditorValues>) => {
+    setEditing((item) =>
+      item?.type === 'member' ? withMemberProfile(item, patch) : item,
+    );
+  };
   const [deleting, setDeleting] = useState<ContentItem | null>(null);
   const [settings, setSettings] = useState<Settings>(data.settings);
   const [error, setError] = useState('');
@@ -165,7 +282,7 @@ function AdminPanel() {
         i.group === memberGroup) &&
       (statusFilter === 'all' ||
         (statusFilter === 'published' ? i.published : !i.published)) &&
-      `${i.title} ${i.subtitle} ${i.category}`
+      `${i.title} ${i.subtitle} ${i.category} ${i.author || ''}`
         .toLocaleLowerCase()
         .includes(query.toLocaleLowerCase()),
   );
@@ -193,11 +310,13 @@ function AdminPanel() {
   const updateItem = async (event: FormEvent) => {
     event.preventDefault();
     if (!editing) return;
-    const item = {
+    let item: ContentItem = {
       ...editing,
       title: editing.title.trim(),
       subtitle: editing.subtitle.trim(),
     };
+    if (item.type === 'member') item = withMemberProfile(item);
+    if (item.type === 'research') item.author = item.author?.trim() ?? '';
     if (!item.title) {
       setError('Informe um título ou nome.');
       return;
@@ -205,10 +324,6 @@ function AdminPanel() {
     if (item.url && !safeUrl(item.url)) {
       setError('Use um endereço HTTPS válido ou um caminho do próprio site.');
       return;
-    }
-    if (item.type === 'member') {
-      item.role = item.subtitle;
-      item.area = item.category;
     }
     const exists = data.items.some((i) => i.id === item.id);
     const items = exists
@@ -228,7 +343,7 @@ function AdminPanel() {
   const create = () => {
     if (!current) return;
     setError('');
-    setEditing({
+    const item: ContentItem = {
       id: crypto.randomUUID(),
       type: current.type,
       title: '',
@@ -238,8 +353,17 @@ function AdminPanel() {
       url: '',
       category: '',
       published: false,
-      ...(current.type === 'member' ? { group: 'Ligantes' } : {}),
-    });
+      ...(current.type === 'member'
+        ? {
+            group: 'Ligantes',
+            role: 'Ligante',
+            subtitle: 'Ligante',
+            area: 'Pesquisa',
+            category: 'Pesquisa',
+          }
+        : {}),
+    };
+    setEditing(item.type === 'member' ? withMemberProfile(item) : item);
   };
   const upload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -756,11 +880,27 @@ function AdminPanel() {
                 disabled={busy || uploading}
                 className="admin-editor-fields"
               >
+                {editing.type === 'research' && (
+                  <Field
+                    label="Autor(es)"
+                    hint="Informe a autoria que deve aparecer junto à pesquisa."
+                  >
+                    <input
+                      autoFocus
+                      maxLength={240}
+                      value={editing.author ?? ''}
+                      onChange={(e) =>
+                        setEditing({ ...editing, author: e.target.value })
+                      }
+                      placeholder="Nome ou nomes dos autores"
+                    />
+                  </Field>
+                )}
                 <Field
                   label={editing.type === 'member' ? 'Nome completo' : 'Título'}
                 >
                   <input
-                    autoFocus
+                    autoFocus={editing.type !== 'research'}
                     required
                     maxLength={160}
                     value={editing.title}
@@ -769,48 +909,126 @@ function AdminPanel() {
                     }
                   />
                 </Field>
-                <Field
-                  label={editing.type === 'member' ? 'Cargo' : 'Subtítulo'}
-                >
-                  <input
-                    maxLength={240}
-                    value={editing.subtitle}
-                    onChange={(e) =>
-                      setEditing({ ...editing, subtitle: e.target.value })
-                    }
-                  />
-                </Field>
-                {editing.type === 'member' && (
-                  <Field label="Grupo">
-                    <select
-                      value={editing.group || 'Ligantes'}
-                      onChange={(e) =>
-                        setEditing({ ...editing, group: e.target.value })
+                {editing.type === 'member' && memberForm ? (
+                  <>
+                    <Field
+                      label="Cargo"
+                      hint="A categoria nos filtros de Membros é definida pelo cargo."
+                    >
+                      <select
+                        value={memberForm.cargo}
+                        onChange={(e) =>
+                          updateMemberEditing({
+                            cargo: e.target.value as MemberCargo,
+                          })
+                        }
+                      >
+                        <optgroup label="Diretoria">
+                          <option value="president">Presidente</option>
+                          <option value="vice-president">
+                            Vice-presidente
+                          </option>
+                          <option value="secretary-general">
+                            Secretário-geral
+                          </option>
+                          <option value="director">Diretor(a) de área</option>
+                        </optgroup>
+                        <optgroup label="Ligantes">
+                          <option value="member">Ligante</option>
+                        </optgroup>
+                        <optgroup label="Orientadores">
+                          <option value="advisor">
+                            Professor(a) orientador(a)
+                          </option>
+                        </optgroup>
+                      </select>
+                    </Field>
+                    {memberForm.cargo !== 'member' && (
+                      <Field
+                        label="Forma gramatical do cargo"
+                        hint="Define apenas como o cargo será escrito; não é salvo como informação pessoal."
+                      >
+                        <select
+                          value={memberForm.gender}
+                          onChange={(e) =>
+                            updateMemberEditing({
+                              gender: e.target.value as MemberGender,
+                            })
+                          }
+                        >
+                          <option value="masculine">Masculina</option>
+                          <option value="feminine">Feminina</option>
+                        </select>
+                      </Field>
+                    )}
+                    <Field
+                      label="Área"
+                      hint={
+                        memberAreaOptions(memberForm.cargo).length === 1
+                          ? 'A área acompanha este cargo.'
+                          : 'Escolha uma das áreas oficiais da liga.'
                       }
                     >
-                      <option>Diretoria</option>
-                      <option>Ligantes</option>
-                      <option>Orientadores</option>
-                    </select>
-                  </Field>
+                      <select
+                        value={memberForm.area}
+                        disabled={
+                          memberAreaOptions(memberForm.cargo).length === 1
+                        }
+                        onChange={(e) =>
+                          updateMemberEditing({ area: e.target.value })
+                        }
+                      >
+                        {memberAreaOptions(memberForm.cargo).map((area) => (
+                          <option key={area} value={area}>
+                            {area}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <div className="member-role-preview" aria-live="polite">
+                      <span>Cargo que será exibido</span>
+                      <strong>{memberRole(memberForm)}</strong>
+                      <small>
+                        Grupo: {memberGroupForCargo(memberForm.cargo)}
+                      </small>
+                    </div>
+                  </>
+                ) : (
+                  editing.type !== 'member' && (
+                    <>
+                      <Field label="Subtítulo">
+                        <input
+                          maxLength={240}
+                          value={editing.subtitle}
+                          onChange={(e) =>
+                            setEditing({
+                              ...editing,
+                              subtitle: e.target.value,
+                            })
+                          }
+                        />
+                      </Field>
+                      <Field
+                        label={
+                          editing.type === 'media'
+                            ? 'Veículo de comunicação'
+                            : 'Categoria'
+                        }
+                      >
+                        <input
+                          maxLength={100}
+                          value={editing.category}
+                          onChange={(e) =>
+                            setEditing({
+                              ...editing,
+                              category: e.target.value,
+                            })
+                          }
+                        />
+                      </Field>
+                    </>
+                  )
                 )}
-                <Field
-                  label={
-                    editing.type === 'member'
-                      ? 'Área'
-                      : editing.type === 'media'
-                        ? 'Veículo de comunicação'
-                        : 'Categoria'
-                  }
-                >
-                  <input
-                    maxLength={100}
-                    value={editing.category}
-                    onChange={(e) =>
-                      setEditing({ ...editing, category: e.target.value })
-                    }
-                  />
-                </Field>
                 {editing.type !== 'member' && (
                   <>
                     <Field label="Descrição">

@@ -15,8 +15,8 @@ const normalize = (value: string) =>
 function rank(member: ContentItem) {
   if (member.group === 'Diretoria') {
     const role = normalize(member.role || member.subtitle);
-    if (/^vice[ -]?presidente/.test(role)) return 1;
-    if (/^presidente/.test(role)) return 0;
+    if (/^vice[ -]?president[ae]/.test(role)) return 1;
+    if (/^president[ae]/.test(role)) return 0;
     if (/secretari/.test(role)) return 2;
     // The existing league order is retained among directors of equal authority.
     if (/pesquisa/.test(role)) return 3;
