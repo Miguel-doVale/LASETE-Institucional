@@ -1017,6 +1017,11 @@ function AdminPanel() {
                       >
                         <input
                           maxLength={100}
+                          placeholder={
+                            editing.type === 'activity'
+                              ? 'Ex.: Ensino, Workshop ou Conferência'
+                              : ''
+                          }
                           value={editing.category}
                           onChange={(e) =>
                             setEditing({

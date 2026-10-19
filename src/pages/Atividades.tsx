@@ -7,8 +7,11 @@ export default function Atividades() {
   const activities = usePublished('activity'),
     media = usePublished('media'),
     notices = usePublished('notice');
+  const teachingActivities = activities.filter((item) =>
+    item.category.trim().toLocaleLowerCase('pt-BR').startsWith('ensino'),
+  );
   const [params, setParams] = useSearchParams();
-  const tab = ['atividades', 'midia', 'comunicados'].includes(
+  const tab = ['atividades', 'ensino', 'midia', 'comunicados'].includes(
     params.get('aba') || '',
   )
     ? params.get('aba')!
@@ -30,6 +33,7 @@ export default function Atividades() {
         >
           <TabsList aria-label="Explorar atividades e mídia">
             <TabsTrigger value="atividades">Atividades</TabsTrigger>
+            <TabsTrigger value="ensino">Ensino</TabsTrigger>
             <TabsTrigger value="midia">LASETE na mídia</TabsTrigger>
             <TabsTrigger value="comunicados">Comunicados</TabsTrigger>
           </TabsList>
@@ -46,14 +50,36 @@ export default function Atividades() {
               />
             )}
           </TabsContent>
+          <TabsContent value="ensino">
+            <div className="tab-intro">
+              <span className="section-label">Formação técnica</span>
+              <h2>Ensino na prática.</h2>
+              <p>
+                Aulas, oficinas e grupos de estudo para conectar fundamentos de
+                segurança e tecnologias emergentes à prática.
+              </p>
+            </div>
+            {teachingActivities.length ? (
+              <div className="activity-grid">
+                {teachingActivities.map((item) => (
+                  <ContentCard key={item.id} item={item} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                title="As próximas aulas aparecem aqui."
+                description="Acompanhe este espaço para ver aulas, oficinas e grupos de estudo da LASETE."
+              />
+            )}
+          </TabsContent>
           <TabsContent value="midia">
             <div className="tab-intro">
               <span className="section-label">A liga em circulação</span>
               <h2>LASETE na mídia.</h2>
               <p>
-                Registros publicados nos nossos canais, participações e menções
-                à liga. Cada conteúdo identifica sua fonte para você continuar a
-                conversa.
+                Publicações dos canais oficiais, como o Instagram, além de
+                participações e menções à liga. Cada conteúdo aponta para sua
+                fonte original.
               </p>
             </div>
             {media.length ? (

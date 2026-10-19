@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { useReducedMotion, useMediaQuery } from '@/lib/preferences';
-import { Menu, ArrowUp, Sparkles } from 'lucide-react';
+import { Menu, ArrowUp } from 'lucide-react';
 import { Instagram, Linkedin } from './SocialIcons';
 import Lenis from 'lenis';
 import gsap from 'gsap';
@@ -63,7 +63,6 @@ function Header() {
               target="_blank"
               rel="noreferrer"
             >
-              <Sparkles size={16} />
               LASETE AI
             </a>
           </Button>

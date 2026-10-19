@@ -11,10 +11,10 @@ export default function Liga() {
         description="Uma iniciativa de estudantes da Escola de Tecnologia da UNDB para aprender, pesquisar e explorar novas possibilidades em segurança e tecnologias emergentes."
       />
       <section className="about-statement shell">
-        <div className="about-photo post-crop">
+        <div className="about-photo">
           <img
-            src="/images/comunidade.webp"
-            alt="Comunidade da LASETE reunida na UNDB"
+            src="/images/a-liga.webp"
+            alt="Integrantes da LASETE reunidos em uma atividade da liga"
             loading="lazy"
           />
         </div>
@@ -51,7 +51,7 @@ export default function Liga() {
               symbol: '—',
               title: 'Ensino',
               copy: 'Aulas internas, oficinas e grupos de estudo que aproximam fundamentos e prática.',
-              to: '/atividades',
+              to: '/atividades?aba=ensino',
             },
             {
               symbol: '+',
@@ -60,7 +60,7 @@ export default function Liga() {
               to: '/pesquisas',
             },
             {
-              symbol: '✳',
+              symbol: '◉',
               title: 'Extensão',
               copy: 'Organização e participação em eventos para levar o conhecimento à comunidade.',
               to: '/atividades',

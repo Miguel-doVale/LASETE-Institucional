@@ -8,7 +8,7 @@ import { useRef } from 'react';
 import { useReducedMotion } from '@/lib/preferences';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { Mail, Sparkles } from 'lucide-react';
+import { Mail, Network } from 'lucide-react';
 import { useContent, usePublished } from '@/lib/content';
 import { safeUrl } from '@/lib/utils';
 import { Hero } from '@/components/Hero';
@@ -77,9 +77,9 @@ export default function Home() {
           </div>
         </div>
         <figure className="home-intro-photo">
-          <div className="post-crop">
+          <div className="home-intro-image">
             <img
-              src="/images/comunidade.webp"
+              src="/images/liga-home.webp"
               alt="A comunidade da LASETE reunida em uma atividade na UNDB"
               loading="lazy"
               decoding="async"
@@ -94,7 +94,7 @@ export default function Home() {
             {
               name: 'Ensino',
               copy: 'Aulas, oficinas e grupos de estudo para conectar fundamentos e prática.',
-              to: '/atividades',
+              to: '/atividades?aba=ensino',
             },
             {
               name: 'Pesquisa',
@@ -122,7 +122,7 @@ export default function Home() {
             link="Explorar projetos"
             to="/projetos"
           />
-          <div className="home-projects">
+          <div className="home-projects home-projects-split">
             {projects.slice(0, 2).map((item) => (
               <ProjectPreview item={item} key={item.id} />
             ))}
@@ -163,7 +163,7 @@ export default function Home() {
           </Link>
         </div>
         <div className="home-ai" data-reveal>
-          <Sparkles size={30} strokeWidth={1.3} />
+          <Network size={30} strokeWidth={1.3} />
           <span className="section-label">Uma iniciativa da LASETE</span>
           <h2>LASETE AI</h2>
           <p>

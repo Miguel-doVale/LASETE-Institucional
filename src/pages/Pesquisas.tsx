@@ -9,49 +9,22 @@ import {
 export default function Pesquisas() {
   const items = usePublished('research');
   return (
-    <>
+    <div className="research-page">
       <PageIntro
         ambient
         label="Pesquisas"
         title="Boas perguntas abrem caminhos."
         description="Pesquisa acadêmica e aprofundamento técnico para explorar as relações entre segurança, tecnologia e seus impactos reais."
       />
-      <section className="shell research-fields">
-        <span className="section-label">Um território para investigar</span>
-        <div className="research-field" data-reveal>
-          <span className="field-code">SEC</span>
-          <h2>Segurança da informação</h2>
-          <p>
-            Aplicações, redes e os desafios de construir ambientes digitais mais
-            seguros.
-          </p>
-        </div>
-        <div className="research-field" data-reveal>
-          <span className="field-code">AI</span>
-          <h2>Inteligência artificial</h2>
-          <p>
-            Aprendizado de máquina, dados e novas possibilidades para a
-            tecnologia.
-          </p>
-        </div>
-        <div className="research-field" data-reveal>
-          <span className="field-code">PRIV</span>
-          <h2>Privacidade e proteção de dados</h2>
-          <p>
-            Responsabilidade e ética na relação entre pessoas e sistemas
-            digitais.
-          </p>
-        </div>
-      </section>
-      <section className="shell section-space">
+      <section className="shell research-results">
         <SectionHeading
-          label="Estudos e materiais"
-          title="Conhecimento para compartilhar."
+          label="Pesquisas e materiais"
+          title="Investigações e aprendizados da liga."
         />
         {items.length ? (
           <div className="project-grid">
-            {items.map((i) => (
-              <ContentCard key={i.id} item={i} />
+            {items.map((item) => (
+              <ContentCard key={item.id} item={item} />
             ))}
           </div>
         ) : (
@@ -61,6 +34,44 @@ export default function Pesquisas() {
           />
         )}
       </section>
-    </>
+      <section className="shell section-space research-fields">
+        <SectionHeading
+          label="Temas que dialogam com a liga"
+          title="Da cibersegurança aos sistemas conectados."
+        />
+        <div className="research-field-grid">
+          <div className="research-field" data-reveal>
+            <span className="field-code">SEC</span>
+            <h2>Segurança digital</h2>
+            <p>
+              Aplicações, redes e práticas para ambientes digitais mais seguros.
+            </p>
+          </div>
+          <div className="research-field" data-reveal>
+            <span className="field-code">IA</span>
+            <h2>Inteligência artificial</h2>
+            <p>
+              Aprendizado de máquina, visão computacional e uso responsável de
+              dados.
+            </p>
+          </div>
+          <div className="research-field" data-reveal>
+            <span className="field-code">IOT</span>
+            <h2>Sistemas conectados</h2>
+            <p>
+              Dispositivos, sensores e os desafios de segurança da Internet das
+              Coisas.
+            </p>
+          </div>
+          <div className="research-field" data-reveal>
+            <span className="field-code">PRIV</span>
+            <h2>Privacidade</h2>
+            <p>
+              Proteção de dados, responsabilidade e ética em sistemas digitais.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

@@ -168,6 +168,14 @@ export const initialData: SiteData = {
       '/images/giro.webp',
       'Extensão',
     ),
+    activity(
+      'processo-quebra-wifi',
+      'Processo de quebra de senha Wi-Fi',
+      'Aula sobre segurança em redes sem fio.',
+      'Atividade de ensino voltada à análise de segurança Wi-Fi em ambiente controlado e autorizado. A prática deve ser realizada apenas em redes próprias ou com permissão explícita.',
+      '/images/aula-quebra-de-senha-wifi.webp',
+      'Ensino',
+    ),
     {
       id: 'midia-ctic',
       type: 'media',

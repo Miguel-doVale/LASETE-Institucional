@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Flag, Sparkles, Plus } from 'lucide-react';
+import { Flag, Network, Plus } from 'lucide-react';
 import type { ContentItem } from '@/lib/content';
 import { safeUrl } from '@/lib/utils';
 import { useMediaQuery } from '@/lib/preferences';
@@ -8,11 +8,37 @@ import { safeImage } from './Shared';
 import { Emblem } from './Brand';
 import { Button } from './ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
-export function ProjectPreview({ item }: { item: ContentItem }) {
-  const image =
-    item.image || (item.id === 'ctf' ? '/images/ctf-registro.webp' : '');
+function AIProjectArtwork({
+  title,
+  category,
+}: {
+  title: string;
+  category: string;
+}) {
   return (
-    <article className="project-preview" data-reveal>
+    <div className="ai-project-art" aria-hidden="true">
+      <div className="ai-project-signal">
+        <span className="ai-project-node ai-project-node-north" />
+        <span className="ai-project-node ai-project-node-east" />
+        <span className="ai-project-node ai-project-node-south" />
+        <span className="ai-project-node ai-project-node-west" />
+        <Network size={46} strokeWidth={1.2} />
+      </div>
+      <div className="ai-project-label">
+        <strong>{title}</strong>
+        <span>{category}</span>
+      </div>
+    </div>
+  );
+}
+export function ProjectPreview({ item }: { item: ContentItem }) {
+  const image = item.id === 'ctf' ? '/images/ctf.webp' : item.image;
+  return (
+    <article
+      className="project-preview"
+      data-project={item.id}
+      data-reveal
+    >
       <Link
         to={`/projetos?projeto=${encodeURIComponent(item.id)}`}
         className={`project-preview-image ${item.postCrop || item.id === 'ctf' ? 'post-crop' : ''}`}
@@ -25,6 +51,8 @@ export function ProjectPreview({ item }: { item: ContentItem }) {
             loading="lazy"
             decoding="async"
           />
+        ) : item.id === 'lasete-ai' ? (
+          <AIProjectArtwork title={item.title} category={item.category} />
         ) : (
           <div className="project-preview-brand">
             <Emblem />
@@ -148,7 +176,7 @@ export function ProjectExplorer({ items }: { items: ContentItem[] }) {
                   {item.id === 'ctf' ? (
                     <Flag size={20} />
                   ) : item.id === 'lasete-ai' ? (
-                    <Sparkles size={20} />
+                    <Network size={20} />
                   ) : (
                     <Plus size={20} />
                   )}
@@ -208,13 +236,20 @@ export function ProjectExplorer({ items }: { items: ContentItem[] }) {
                 >
                   {item.image || item.id === 'ctf' ? (
                     <img
-                      src={safeImage(item.image || '/images/ctf-registro.webp')}
+                      src={safeImage(
+                        item.id === 'ctf' ? '/images/ctf.webp' : item.image,
+                      )}
                       alt={
                         item.id === 'ctf'
-                          ? 'Registro dos participantes no Capture the Flag da LASETE'
+                          ? 'Cartaz do projeto Capture the Flag da LASETE'
                           : item.title
                       }
                       loading="lazy"
+                    />
+                  ) : item.id === 'lasete-ai' ? (
+                    <AIProjectArtwork
+                      title={item.title}
+                      category={item.category}
                     />
                   ) : (
                     <div className="project-detail-brand">
